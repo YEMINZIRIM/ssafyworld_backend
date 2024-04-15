@@ -1,26 +1,24 @@
 package com.yeminjilim.ssafyworld.member.dto;
 
 
-import com.yeminjilim.ssafyworld.member.entity.Member;
+import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Builder(access = AccessLevel.PRIVATE)
 @Data
 public class MemberDTO {
 
-    private Long id;
+    private Integer id;
     private String sub;
     private String provider;
     private Long groupInfoId;
     private String name;
     private String serialNumber;
 
-    public Member toEntity() {
-        return Member.builder()
+    public MemberInfo toEntity() {
+        return MemberInfo.builder()
                 .id(id)
                 .sub(sub)
                 .provider(provider)
@@ -30,7 +28,7 @@ public class MemberDTO {
                 .build();
     }
 
-    public MemberDTO toDTO(Member member) {
+    public MemberDTO toDTO(MemberInfo member) {
         return MemberDTO.builder()
                 .id(member.getId())
                 .sub(member.getSub())

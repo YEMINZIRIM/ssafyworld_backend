@@ -1,24 +1,46 @@
 package com.yeminjilim.ssafyworld.member.service;
 
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.entity.GroupInfo;
 import com.yeminjilim.ssafyworld.member.entity.Member;
-import com.yeminjilim.ssafyworld.member.repository.MemberRepository;
+import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
+import io.r2dbc.spi.ConnectionFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class MemberServiceImpl implements MemberService {
 
-    private MemberRepository memberRepository;
+    private final ConnectionFactory connectionFactory;
 
-    public MemberServiceImpl(MemberRepository memberRepository) {
-        this.memberRepository = memberRepository;
-    }
 
     @Override
     public Mono<Member> findById(Long id) {
-        return null;
+
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        return template.getDatabaseClient()
+                .sql("SELECT m.*, g.* FROM member m JOIN group_info g ON m.groupInfoId = g.groupInfoId WHERE m.memberId = :id")
+                .bind("id",id)
+                .map(row -> {
+                    MemberInfo memberInfo = MemberInfo.mapping(row);
+                    GroupInfo groupInfo = GroupInfo.builder()
+                            .id(row.get("groupInfoId",Long.class))
+                            .ordinal(row.get("ordinal",Long.class))
+                            .region(row.get("region",String.class))
+                            .ban(row.get("ban", Long.class))
+                            .build();
+
+                    return new Member(memberInfo,groupInfo);
+                })
+                .first()
+                .doOnNext(member -> log.info(member.toString()));
     }
 
     @Override
@@ -27,17 +49,17 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Mono<Member> save(MemberDTO memberDTO) {
+    public Mono<MemberInfo> save(MemberDTO memberDTO) {
         return null;
     }
 
     @Override
-    public Mono<Member> update(MemberDTO memberDTO) {
+    public Mono<MemberInfo> update(MemberDTO memberDTO) {
         return null;
     }
 
     @Override
-    public Mono<Member> delete(Long id) {
+    public Mono<MemberInfo> delete(Long id) {
         return null;
     }
 }
