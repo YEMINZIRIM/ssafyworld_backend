@@ -19,4 +19,6 @@ public interface GroupInfoService {
 
     Flux<Long> findAllBan(Long ordinal, String region);
 
+    Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name);
+
 }
