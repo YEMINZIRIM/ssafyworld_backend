@@ -19,7 +19,7 @@ public class MemberInfo {
 
     @Id
     @Column("memberId")
-    private Integer id;
+    private Long memberId;
 
     @Column("sub")
     private String sub;
@@ -48,7 +48,7 @@ public class MemberInfo {
 
     public static MemberInfo mapping(Row row) {
         return builder()
-                .id(row.get("memberId",Integer.class))
+                .memberId(row.get("memberId",Long.class))
                 .sub(row.get("sub",String.class))
                 .provider(row.get("provider",String.class))
                 .groupInfoId(row.get("groupInfoId",Long.class))

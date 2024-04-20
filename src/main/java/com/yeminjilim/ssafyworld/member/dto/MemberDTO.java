@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class MemberDTO {
 
-    private Integer id;
+    private Long memberId;
     private String sub;
     private String provider;
     private Long groupInfoId;
@@ -19,7 +19,7 @@ public class MemberDTO {
 
     public MemberInfo toEntity() {
         return MemberInfo.builder()
-                .id(id)
+                .memberId(memberId)
                 .sub(sub)
                 .provider(provider)
                 .groupInfoId(groupInfoId)
@@ -30,7 +30,7 @@ public class MemberDTO {
 
     public MemberDTO toDTO(MemberInfo member) {
         return MemberDTO.builder()
-                .id(member.getId())
+                .memberId(member.getMemberId())
                 .sub(member.getSub())
                 .provider(member.getProvider())
                 .groupInfoId(member.getGroupInfoId())
