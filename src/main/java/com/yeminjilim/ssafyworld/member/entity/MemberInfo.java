@@ -36,6 +36,12 @@ public class MemberInfo {
     @Column("serialNumber")
     private String serialNumber;
 
+    @Column("questionId")
+    private Long questionId;
+
+    @Column("answer")
+    private String answer;
+
     @Builder.Default
     @Column("createdAt")
     @CreatedDate
@@ -54,6 +60,8 @@ public class MemberInfo {
                 .groupInfoId(row.get("groupInfoId",Long.class))
                 .name(row.get("name",String.class))
                 .serialNumber(row.get("serialNumber",String.class))
+                .questionId(row.get("questionId", Long.class))
+                .answer(row.get("answer", String.class))
                 .createdAt(row.get("createdAt",LocalDateTime.class))
                 .updatedAt(row.get("updatedAt",LocalDateTime.class))
                 .build();

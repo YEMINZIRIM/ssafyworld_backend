@@ -73,7 +73,14 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Mono<MemberInfo> save(MemberDTO memberDTO) {
-        return null;
+
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        MemberInfo memberInfo = memberDTO.toEntity();
+        return template.insert(MemberInfo.class)
+                .using(memberInfo)
+                .map(MemberInfo::getMemberId)
+                .flatMap(memberId -> Mono.just(memberInfo));
     }
 
 

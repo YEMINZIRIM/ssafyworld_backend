@@ -16,6 +16,8 @@ public class MemberDTO {
     private Long groupInfoId;
     private String name;
     private String serialNumber;
+    private Long questionId;
+    private String answer;
 
     public MemberInfo toEntity() {
         return MemberInfo.builder()
@@ -25,10 +27,12 @@ public class MemberDTO {
                 .groupInfoId(groupInfoId)
                 .name(name)
                 .serialNumber(serialNumber)
+                .questionId(questionId)
+                .answer(answer)
                 .build();
     }
 
-    public MemberDTO toDTO(MemberInfo member) {
+    public static MemberDTO toDTO(MemberInfo member) {
         return MemberDTO.builder()
                 .memberId(member.getMemberId())
                 .sub(member.getSub())
@@ -36,6 +40,8 @@ public class MemberDTO {
                 .groupInfoId(member.getGroupInfoId())
                 .name(member.getName())
                 .serialNumber(member.getSerialNumber())
+                .questionId(member.getQuestionId())
+                .answer(member.getAnswer())
                 .build();
     }
 
