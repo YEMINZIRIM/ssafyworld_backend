@@ -10,9 +10,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.relational.core.query.Update;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import static org.springframework.data.r2dbc.query.Criteria.where;
+import static org.springframework.data.relational.core.query.Query.query;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -87,7 +91,21 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Mono<MemberInfo> update(MemberDTO memberDTO) {
-        return null;
+
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        MemberInfo updatedMemberInfo = memberDTO.toEntity();
+        return template.update(MemberInfo.class)
+                .matching(query(where("memberId").is(updatedMemberInfo.getMemberId())))
+                .apply(Update.update("name", updatedMemberInfo.getName())
+                        .set("sub", updatedMemberInfo.getSub())
+                        .set("provider", updatedMemberInfo.getProvider())
+                        .set("groupInfoId", updatedMemberInfo.getGroupInfoId())
+                        .set("serialNumber", updatedMemberInfo.getSerialNumber())
+                        .set("questionId", updatedMemberInfo.getQuestionId())
+                        .set("answer", updatedMemberInfo.getAnswer())
+                )
+                .then(Mono.just(updatedMemberInfo));
     }
 
     @Override
