@@ -19,7 +19,7 @@ public class MemberInfo {
 
     @Id
     @Column("memberId")
-    private Integer id;
+    private Long memberId;
 
     @Column("sub")
     private String sub;
@@ -36,6 +36,12 @@ public class MemberInfo {
     @Column("serialNumber")
     private String serialNumber;
 
+    @Column("questionId")
+    private Long questionId;
+
+    @Column("answer")
+    private String answer;
+
     @Builder.Default
     @Column("createdAt")
     @CreatedDate
@@ -48,12 +54,14 @@ public class MemberInfo {
 
     public static MemberInfo mapping(Row row) {
         return builder()
-                .id(row.get("memberId",Integer.class))
+                .memberId(row.get("memberId",Long.class))
                 .sub(row.get("sub",String.class))
                 .provider(row.get("provider",String.class))
                 .groupInfoId(row.get("groupInfoId",Long.class))
                 .name(row.get("name",String.class))
                 .serialNumber(row.get("serialNumber",String.class))
+                .questionId(row.get("questionId", Long.class))
+                .answer(row.get("answer", String.class))
                 .createdAt(row.get("createdAt",LocalDateTime.class))
                 .updatedAt(row.get("updatedAt",LocalDateTime.class))
                 .build();

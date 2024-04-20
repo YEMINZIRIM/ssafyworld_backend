@@ -15,5 +15,5 @@ public interface MemberService {
     Mono<MemberInfo> save(MemberDTO memberDTO);
     Mono<MemberInfo> update(MemberDTO memberDTO);
 
-    Mono<MemberInfo> delete(Long id);
+    Mono<Void> delete(Long id);
 }

@@ -10,32 +10,38 @@ import lombok.Data;
 @Data
 public class MemberDTO {
 
-    private Integer id;
+    private Long memberId;
     private String sub;
     private String provider;
     private Long groupInfoId;
     private String name;
     private String serialNumber;
+    private Long questionId;
+    private String answer;
 
     public MemberInfo toEntity() {
         return MemberInfo.builder()
-                .id(id)
+                .memberId(memberId)
                 .sub(sub)
                 .provider(provider)
                 .groupInfoId(groupInfoId)
                 .name(name)
                 .serialNumber(serialNumber)
+                .questionId(questionId)
+                .answer(answer)
                 .build();
     }
 
-    public MemberDTO toDTO(MemberInfo member) {
+    public static MemberDTO toDTO(MemberInfo member) {
         return MemberDTO.builder()
-                .id(member.getId())
+                .memberId(member.getMemberId())
                 .sub(member.getSub())
                 .provider(member.getProvider())
                 .groupInfoId(member.getGroupInfoId())
                 .name(member.getName())
                 .serialNumber(member.getSerialNumber())
+                .questionId(member.getQuestionId())
+                .answer(member.getAnswer())
                 .build();
     }
 
