@@ -6,10 +6,7 @@ import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import com.yeminjilim.ssafyworld.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
@@ -20,10 +17,19 @@ public class MemberController {
     private final MemberService memberService;
 
     //회원가입
-    @PostMapping("/join")
+    @PostMapping("/register")
     public Mono<ResponseEntity<MemberDTO>> join(@RequestBody MemberDTO request) {
 
         return memberService.save(request)
+                .map(MemberDTO::toDTO)
+                .map(ResponseEntity::ok);
+    }
+
+    //회원수정
+    @PutMapping("/member")
+    public Mono<ResponseEntity<MemberDTO>> update(@RequestBody MemberDTO request) {
+
+        return memberService.update(request)
                 .map(MemberDTO::toDTO)
                 .map(ResponseEntity::ok);
     }
