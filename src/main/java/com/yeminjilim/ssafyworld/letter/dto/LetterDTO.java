@@ -5,9 +5,14 @@ import com.yeminjilim.ssafyworld.util.TimeFormatUtil;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 public class LetterDTO {
     @Getter
+    @ToString
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CreateRequest {
         private Long toUser;
         private String title;
