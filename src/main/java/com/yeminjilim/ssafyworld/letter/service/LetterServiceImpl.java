@@ -3,6 +3,8 @@ package com.yeminjilim.ssafyworld.letter.service;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateRequest;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateResponse;
+import com.yeminjilim.ssafyworld.letter.error.CustomLetterException;
+import com.yeminjilim.ssafyworld.letter.error.LetterErrorCode;
 import com.yeminjilim.ssafyworld.letter.repository.LetterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +28,7 @@ public class LetterServiceImpl implements LetterService {
 
     private boolean validate(Long userId, CreateRequest request) {
         if (isEqualUser(userId, request.getToUser()))
-            throw new RuntimeException();
+            throw new CustomLetterException(LetterErrorCode.CANT_SEND_TO_ME);
 
         return true;
     }
