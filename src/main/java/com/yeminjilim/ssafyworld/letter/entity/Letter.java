@@ -30,13 +30,13 @@ public class Letter {
     private String content;
     private Integer hidden;
 
-    @Column("createdAt") //@TODO Review => save후 저장된 entity 값을 받아올 수 없음
+    @Column("createdAt")
     @CreatedDate
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @Column("updatedAt")
     @LastModifiedDate
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
     public static Letter of(Long toUser, Long fromUser, String title, String content) {
         Letter letter = new Letter();
