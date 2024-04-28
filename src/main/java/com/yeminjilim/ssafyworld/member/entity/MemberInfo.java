@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class MemberInfo {
 
     @Id
-    @Column("memberId")
+    @Column("id")
     private Long memberId;
 
     @Column("sub")
