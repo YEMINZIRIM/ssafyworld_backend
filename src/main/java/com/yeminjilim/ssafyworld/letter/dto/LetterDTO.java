@@ -1,12 +1,16 @@
 package com.yeminjilim.ssafyworld.letter.dto;
 
 import com.yeminjilim.ssafyworld.letter.entity.Letter;
+import com.yeminjilim.ssafyworld.member.entity.GroupInfo;
+import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import com.yeminjilim.ssafyworld.util.TimeFormatUtil;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import java.time.LocalDateTime;
 
 public class LetterDTO {
     @Getter
@@ -33,6 +37,45 @@ public class LetterDTO {
 
         public static CreateResponse of (Letter letter) {
             return new CreateResponse(letter.getToUser(), letter.getTitle(), letter.getContent(), TimeFormatUtil.parse(letter.getCreatedAt()));
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class ReceivedLetterResponse {
+        private Long letterId;
+        private String title;
+        private String content;
+        private Integer hidden;
+        private LocalDateTime createdAt;
+
+        public static ReceivedLetterResponse of(Letter letter) {
+            return new ReceivedLetterResponse(letter.getId(), letter.getTitle(), letter.getContent(), letter.getHidden(), letter.getCreatedAt());
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class SentLetterResponse {
+        private Long letterId;
+        private Long toUserOrdinal;
+        private String toUserRegion;
+        private Long toUserBan;
+        private String toUserName;
+        private String title;
+        private String content;
+        private LocalDateTime createdAt;
+
+        public static SentLetterResponse of(Letter letter, MemberInfo memberInfo, GroupInfo groupInfo) {
+            return new SentLetterResponse(
+                    letter.getId(),
+                    groupInfo.getOrdinal(),
+                    groupInfo.getRegion(),
+                    groupInfo.getBan(),
+                    memberInfo.getName(),
+                    letter.getTitle(),
+                    letter.getContent(),
+                    letter.getCreatedAt());
         }
     }
 }
