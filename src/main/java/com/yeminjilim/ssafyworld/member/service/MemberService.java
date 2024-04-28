@@ -10,6 +10,8 @@ import reactor.core.publisher.Mono;
 public interface MemberService {
 
     Mono<Member> findById(Long id);
+    Mono<Member> findBySub(String sub);
+
     Flux<Member> findAll();
     Mono<Member> findBySubAndProvider(String sub, String provider);
     Mono<MemberInfo> save(MemberDTO memberDTO);

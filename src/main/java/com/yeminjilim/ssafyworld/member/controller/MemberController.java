@@ -3,12 +3,16 @@ package com.yeminjilim.ssafyworld.member.controller;
 import com.yeminjilim.ssafyworld.jwt.JWTProvider;
 import com.yeminjilim.ssafyworld.member.dto.LoginRequestDto;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.error.CustomMemberException;
 import com.yeminjilim.ssafyworld.member.error.MemberErrorCode;
 import com.yeminjilim.ssafyworld.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -60,5 +64,22 @@ public class MemberController {
         // 토큰을 검증하고 유효한지 확인하는 코드
 
         return Mono.just(ResponseEntity.ok().body("Logged out successfully"));
+    }
+
+    //회원 정보 가져오기ㅣ
+    @GetMapping("/member/info")
+    public Mono<ResponseEntity<?>> getMemberInfo(ServerHttpRequest request) {
+        try {
+            Authentication authentication = jwtProvider.getToken(request);
+
+            UserDetails userDetails = (UserDetails)authentication.getPrincipal();
+            String sub = userDetails.getUsername();
+
+            Mono<Member> findMember = memberService.findBySub(sub);
+            return Mono.just(ResponseEntity.ok().body(findMember));
+
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.badRequest().body("Error retrieving member information: " + e.getMessage()));
+        }
     }
 }

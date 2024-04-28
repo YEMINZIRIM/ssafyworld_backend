@@ -54,6 +54,29 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public Mono<Member> findBySub(String sub) {
+
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        return template.getDatabaseClient()
+                .sql("SELECT m.*, g.* FROM member m JOIN group_info g ON m.groupInfoId = g.id WHERE m.memberId = :sub")
+                .bind("sub",sub)
+                .map(row -> {
+                    MemberInfo memberInfo = MemberInfo.mapping(row);
+                    GroupInfo groupInfo = GroupInfo.builder()
+                            .id(row.get("groupInfoId",Long.class))
+                            .ordinal(row.get("ordinal",Long.class))
+                            .region(row.get("region",String.class))
+                            .ban(row.get("ban", Long.class))
+                            .build();
+
+                    return new Member(memberInfo,groupInfo);
+                })
+                .first()
+                .doOnNext(member -> log.info(member.toString()));
+    }
+
+    @Override
     public Flux<Member> findAll() {
 
         R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
