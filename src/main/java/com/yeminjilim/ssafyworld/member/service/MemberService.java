@@ -1,5 +1,6 @@
 package com.yeminjilim.ssafyworld.member.service;
 
+import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
@@ -18,6 +19,6 @@ public interface MemberService {
     Mono<MemberInfo> update(MemberDTO memberDTO);
 
     Mono<Void> delete(Long id);
-
+    Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name);
 
 }

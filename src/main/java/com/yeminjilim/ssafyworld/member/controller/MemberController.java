@@ -1,12 +1,14 @@
 package com.yeminjilim.ssafyworld.member.controller;
 
 import com.yeminjilim.ssafyworld.jwt.JWTProvider;
+import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
 import com.yeminjilim.ssafyworld.member.dto.LoginRequestDto;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.error.CustomMemberException;
 import com.yeminjilim.ssafyworld.member.error.MemberErrorCode;
 import com.yeminjilim.ssafyworld.member.service.MemberService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -80,6 +82,26 @@ public class MemberController {
 
         } catch (Exception e) {
             return Mono.just(ResponseEntity.badRequest().body("Error retrieving member information: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/duplicate")
+    public Mono<ResponseEntity<DuplicateMemberDTO>> isExistUserInGroup(
+            GroupInfoDTO request,
+            @RequestParam("name") String name
+    ) {
+        return memberService.existByOrdinalAndRegionAndBan(request,name)
+                .map(DuplicateMemberDTO::new)
+                .map(ResponseEntity::ok);
+    }
+
+
+    @Data
+    private static class DuplicateMemberDTO {
+        private Boolean duplicate;
+
+        public DuplicateMemberDTO(Boolean duplicate) {
+            this.duplicate = duplicate;
         }
     }
 }
