@@ -11,9 +11,11 @@ public interface MemberService {
 
     Mono<Member> findById(Long id);
     Flux<Member> findAll();
-
+    Mono<Member> findBySubAndProvider(String sub, String provider);
     Mono<MemberInfo> save(MemberDTO memberDTO);
     Mono<MemberInfo> update(MemberDTO memberDTO);
 
     Mono<Void> delete(Long id);
+
+
 }
