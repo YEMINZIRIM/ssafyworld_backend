@@ -10,9 +10,14 @@ import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateResponse;
 import com.yeminjilim.ssafyworld.letter.entity.Letter;
 import com.yeminjilim.ssafyworld.letter.error.CustomLetterException;
 import com.yeminjilim.ssafyworld.letter.repository.LetterRepository;
+import com.yeminjilim.ssafyworld.member.entity.Member;
+import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
+import com.yeminjilim.ssafyworld.member.repository.GroupInfoRepository;
+import com.yeminjilim.ssafyworld.member.repository.MemberInfoRepository;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -23,6 +28,10 @@ import reactor.test.StepVerifier;
 public class LetterServiceTest {
     @Mock
     LetterRepository letterRepository;
+    @Mock
+    MemberInfoRepository memberInfoRepository;
+    @Mock
+    GroupInfoRepository groupInfoRepository;
 
     LetterService letterService;
 
@@ -31,19 +40,21 @@ public class LetterServiceTest {
     long fromUserId = 2L;
     String testTitle = "this is title";
     String testContent = "this is content";
+    Letter mockLetter;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        letterService = new LetterServiceImpl(letterRepository);
+        letterService = new LetterServiceImpl(letterRepository, memberInfoRepository, groupInfoRepository);
 
         //letterRepository에서 반환할 db에 저장된 Letter
-        Letter mockLetter = new Letter(1L, toUserId, fromUserId, testTitle, testContent, 1, LocalDateTime.now(), LocalDateTime.now());
+        mockLetter = new Letter(1L, toUserId, fromUserId, testTitle, testContent, 1, LocalDateTime.now(), LocalDateTime.now());
         Mono<Letter> mockLetterMono = Mono.just(mockLetter);
         given(letterRepository.save(any(Letter.class))).willReturn(mockLetterMono);
     }
 
     @Test
+    @Order(1)
     public void create_letter_successful_returns_letter(){
         //letterService에 들어올 dto
         LetterDTO.CreateRequest mockLetterDto = new LetterDTO.CreateRequest(toUserId, testTitle, testContent);
@@ -78,6 +89,41 @@ public class LetterServiceTest {
 
         //customeLetterException이 발생하는지 확인
         StepVerifier.create(letter)
+                .verifyError(CustomLetterException.class);
+    }
+
+    @Test
+    @Order(2)
+    public void delete_letter(){
+        given(letterRepository.findById(1L)).willReturn(Mono.just(mockLetter));
+        given(letterRepository.delete(any())).willReturn(Mono.empty());
+
+        StepVerifier.create(Mono.empty())
+                .then(() -> letterService.deleteLetter(1L, new Member(MemberInfo.builder().memberId(fromUserId).build(), null)))
+                .verifyComplete();
+    }
+
+    @Test
+    @Order(2)
+    public void delete_forbidden(){
+        given(letterRepository.findById(1L)).willReturn(Mono.just(mockLetter));
+        given(letterRepository.delete(any())).willReturn(Mono.empty());
+        Mono<Void> voidMono = letterService.deleteLetter(1L,
+                new Member(MemberInfo.builder().memberId(toUserId).build(), null));
+
+        StepVerifier.create(voidMono)
+                .verifyError(CustomLetterException.class);
+    }
+
+    @Test
+    @Order(2)
+    public void delete_notfound(){
+        given(letterRepository.findById(1L)).willReturn(Mono.empty());
+        given(letterRepository.delete(any())).willReturn(Mono.empty());
+        Mono<Void> voidMono = letterService.deleteLetter(1L,
+                new Member(MemberInfo.builder().memberId(toUserId).build(), null));
+
+        StepVerifier.create(voidMono)
                 .verifyError(CustomLetterException.class);
     }
 }
