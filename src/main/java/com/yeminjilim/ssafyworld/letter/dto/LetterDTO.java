@@ -6,6 +6,7 @@ import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import com.yeminjilim.ssafyworld.util.TimeFormatUtil;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -41,12 +42,21 @@ public class LetterDTO {
     }
 
     @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor
+    public static class HideRequest {
+        private Long letterId;
+        private boolean hidden;
+    }
+
+    @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ReceivedLetterResponse {
         private Long letterId;
         private String title;
         private String content;
-        private Integer hidden;
+        private Boolean hidden;
         private LocalDateTime createdAt;
 
         public static ReceivedLetterResponse of(Letter letter) {

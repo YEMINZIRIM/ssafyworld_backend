@@ -48,7 +48,7 @@ public class LetterServiceTest {
         letterService = new LetterServiceImpl(letterRepository, memberInfoRepository, groupInfoRepository);
 
         //letterRepository에서 반환할 db에 저장된 Letter
-        mockLetter = new Letter(1L, toUserId, fromUserId, testTitle, testContent, 1, LocalDateTime.now(), LocalDateTime.now());
+        mockLetter = new Letter(1L, toUserId, fromUserId, testTitle, testContent, false, LocalDateTime.now(), LocalDateTime.now());
         Mono<Letter> mockLetterMono = Mono.just(mockLetter);
         given(letterRepository.save(any(Letter.class))).willReturn(mockLetterMono);
     }

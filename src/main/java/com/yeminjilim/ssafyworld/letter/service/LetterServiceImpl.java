@@ -1,15 +1,18 @@
 package com.yeminjilim.ssafyworld.letter.service;
 
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO;
+import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.HideRequest;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.ReceivedLetterResponse;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateRequest;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateResponse;
+import com.yeminjilim.ssafyworld.letter.entity.Letter;
 import com.yeminjilim.ssafyworld.letter.error.CustomLetterException;
 import com.yeminjilim.ssafyworld.letter.error.LetterErrorCode;
 import com.yeminjilim.ssafyworld.letter.repository.LetterRepository;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.repository.GroupInfoRepository;
 import com.yeminjilim.ssafyworld.member.repository.MemberInfoRepository;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,6 +68,23 @@ public class LetterServiceImpl implements LetterService {
                 .filter((letter) -> letter.getFromUser().equals(member.getMemberInfo().getMemberId()))
                 .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.ACCESS_DENIED)))
                 .flatMap(letterRepository::delete); //권한이 없는 사용자
+    }
+
+    @Override
+    public Mono<Letter> hideLetter(Mono<HideRequest> request, Member member) {
+        AtomicBoolean hide = new AtomicBoolean(false);
+
+        return request.flatMap((r) -> {
+                    hide.set(r.isHidden());
+                    return letterRepository.findById(r.getLetterId());
+                })
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_FOUND)))
+                .filter((letter) -> letter.getToUser().equals(member.getMemberInfo().getMemberId()))
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.ACCESS_DENIED)))
+                .doOnNext((letter) -> {
+                    letter.hide(hide.get());
+                })
+                .flatMap(letterRepository::save);
     }
 
     private boolean validate(Long userId, CreateRequest request) {

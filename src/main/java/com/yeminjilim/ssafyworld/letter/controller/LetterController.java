@@ -64,4 +64,17 @@ public class LetterController {
 
         return letterService.deleteLetter(letterId, member);
     }
+
+    //나에게 온 편지 숨기기
+    @PostMapping("/letter/hidden")
+    public Mono<ResponseEntity> hideLetter(@RequestBody Mono<LetterDTO.HideRequest> request) {
+        //TODO 로그인 구현 시 삭제
+        Long tmpFromUserId = 2L;
+        MemberInfo tmpMemberInfo = MemberInfo.builder().memberId(tmpFromUserId).build();
+        Member member = new Member(tmpMemberInfo, null);
+
+        return letterService.hideLetter(request, member)
+                .map((letter) -> LetterDTO.HideRequest.builder().letterId(letter.getId()).build())
+                .map(ResponseEntity::ok);
+    }
 }
