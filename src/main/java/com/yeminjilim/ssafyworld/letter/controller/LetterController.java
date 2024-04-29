@@ -2,8 +2,11 @@ package com.yeminjilim.ssafyworld.letter.controller;
 
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO;
 import com.yeminjilim.ssafyworld.letter.service.LetterService;
+import com.yeminjilim.ssafyworld.member.entity.Member;
+import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -50,5 +53,15 @@ public class LetterController {
                 .onErrorResume(Exception.class,
                         ex -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .build())); // TODO : customError로 변경
+    }
+
+    @DeleteMapping("/letter/{letterId}") //보낸 사람만 삭제가능
+    public Mono<Void> deleteLetter(@PathVariable Long letterId) {
+        //TODO 로그인 구현 시 삭제
+        Long tmpFromUserId = 1L;
+        MemberInfo tmpMemberInfo = MemberInfo.builder().memberId(tmpFromUserId).build();
+        Member member = new Member(tmpMemberInfo, null);
+
+        return letterService.deleteLetter(letterId, member);
     }
 }

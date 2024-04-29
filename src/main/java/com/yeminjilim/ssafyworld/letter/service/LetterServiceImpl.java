@@ -7,6 +7,7 @@ import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateResponse;
 import com.yeminjilim.ssafyworld.letter.error.CustomLetterException;
 import com.yeminjilim.ssafyworld.letter.error.LetterErrorCode;
 import com.yeminjilim.ssafyworld.letter.repository.LetterRepository;
+import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.repository.GroupInfoRepository;
 import com.yeminjilim.ssafyworld.member.repository.MemberInfoRepository;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +56,15 @@ public class LetterServiceImpl implements LetterService {
                                                         LetterDTO.SentLetterResponse.of(letter, memberInfo, groupInfo))
                                 )
                 );
+    }
+
+    @Override
+    public Mono<Void> deleteLetter(Long letterId, Member member) {
+        return letterRepository.findById(letterId)
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_FOUND))) //letter를 찾을 수 없음
+                .filter((letter) -> letter.getFromUser().equals(member.getMemberInfo().getMemberId()))
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.ACCESS_DENIED)))
+                .flatMap(letterRepository::delete); //권한이 없는 사용자
     }
 
     private boolean validate(Long userId, CreateRequest request) {

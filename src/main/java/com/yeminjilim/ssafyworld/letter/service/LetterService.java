@@ -4,6 +4,7 @@ import com.yeminjilim.ssafyworld.letter.dto.LetterDTO;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.ReceivedLetterResponse;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateRequest;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateResponse;
+import com.yeminjilim.ssafyworld.member.entity.Member;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -16,4 +17,5 @@ public interface LetterService {
 
     Flux<LetterDTO.SentLetterResponse> findAllSentLetters(Long userId);
 
+    Mono<Void> deleteLetter(Long letterId, Member member);
 }
