@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -28,7 +27,7 @@ public class Letter {
 
     private String title;
     private String content;
-    private Integer hidden;
+    private Boolean hidden = false;
 
     @Column("createdAt")
     @CreatedDate
@@ -46,5 +45,9 @@ public class Letter {
         letter.content = content;
 
         return letter;
+    }
+
+    public void hide(boolean b) {
+        this.hidden = b;
     }
 }
