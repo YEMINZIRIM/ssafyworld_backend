@@ -40,11 +40,12 @@ public class ReactiveSecurityConfig {
                 }))
                 // TODO : 이 부분이 필터 등록인데 저도 위치가 맞는지 모르겠어서 찾아봐야할것 가틍ㅁ
                 .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-                .authorizeExchange(authorizeExchangeSpec -> {
-                    authorizeExchangeSpec // 권한 체크하기 위한 build
-                            .pathMatchers("/admin/**").hasRole("ROLE_ADMIN") // 권한이 필요한 부분은 여기 아래
-                            .anyExchange().authenticated();
-                });
+//                .authorizeExchange(authorizeExchangeSpec -> {
+//                    authorizeExchangeSpec // 권한 체크하기 위한 build
+//                            .pathMatchers("/admin/**").hasRole("ROLE_ADMIN") // 권한이 필요한 부분은 여기 아래
+//                            .anyExchange().permitAll();
+//                })
+                ;
 
         return http.build();
     }

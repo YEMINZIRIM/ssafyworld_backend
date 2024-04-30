@@ -77,9 +77,9 @@ public class JWTProvider {
 
         JWT jwt = new JWT(token);
 
-        String sub = jwt.get("sub",String.class);
+        String userId = jwt.get("userId",String.class);
 
-        if(sub == null){
+        if(userId == null){
             //TODO : JWT의 body에 필수 필드가 없는 경우
             throw new CustomJWTException(JWTErrorCode.INVALID_JWT);
         }
@@ -93,7 +93,7 @@ public class JWTProvider {
                 .toList();
 
         UserDetails userDetails = User.builder()
-                .username(sub)
+                .username(userId)
                 .password(UUID.randomUUID().toString())
                 .authorities(authorities)
                 .build();
@@ -109,7 +109,7 @@ public class JWTProvider {
         return Jwts.builder()
                 .setHeaderParam("type", "accessToken")
                 .setHeaderParam("alg", "HS256")
-                .setSubject(member.getMemberInfo().getSub())
+                .setSubject(member.getMemberInfo().getMemberId().toString())
                 .setIssuedAt(Date.from(instant))
                 .setExpiration(Date.from(expiredDate))
                 .claim("roles","ROLE_USER")
