@@ -42,24 +42,4 @@ public class GroupInfoController {
 
     }
 
-    @GetMapping("/duplicate")
-    public Mono<ResponseEntity<DuplicateMemberDTO>> isExistUserInGroup(
-            GroupInfoDTO request,
-            @RequestParam("name") String name
-    ) {
-        return groupInfoService.existByOrdinalAndRegionAndBan(request,name)
-                .map(DuplicateMemberDTO::new)
-                .map(ResponseEntity::ok);
-    }
-
-
-    @Data
-    private static class DuplicateMemberDTO {
-        private Boolean duplicate;
-
-        public DuplicateMemberDTO(Boolean duplicate) {
-            this.duplicate = duplicate;
-        }
-    }
-
 }

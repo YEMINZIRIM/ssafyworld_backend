@@ -1,5 +1,6 @@
 package com.yeminjilim.ssafyworld.member.service;
 
+import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
 import com.yeminjilim.ssafyworld.member.entity.GroupInfo;
 import com.yeminjilim.ssafyworld.member.entity.Member;
@@ -54,6 +55,29 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public Mono<Member> findBySub(String sub) {
+
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        return template.getDatabaseClient()
+                .sql("SELECT m.*, g.* FROM member m JOIN group_info g ON m.groupInfoId = g.id WHERE m.memberId = :sub")
+                .bind("sub",sub)
+                .map(row -> {
+                    MemberInfo memberInfo = MemberInfo.mapping(row);
+                    GroupInfo groupInfo = GroupInfo.builder()
+                            .id(row.get("groupInfoId",Long.class))
+                            .ordinal(row.get("ordinal",Long.class))
+                            .region(row.get("region",String.class))
+                            .ban(row.get("ban", Long.class))
+                            .build();
+
+                    return new Member(memberInfo,groupInfo);
+                })
+                .first()
+                .doOnNext(member -> log.info(member.toString()));
+    }
+
+    @Override
     public Flux<Member> findAll() {
 
         R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
@@ -72,6 +96,30 @@ public class MemberServiceImpl implements MemberService {
                     return new Member(memberInfo,groupInfo);
                 })
                 .all()
+                .doOnNext(member -> log.info(member.toString()));
+    }
+
+    @Override
+    public Mono<Member> findBySubAndProvider(String sub, String provider) {
+
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        return template.getDatabaseClient()
+                .sql("SELECT * FROM member m JOIN group_info g ON  m.groupInfoId = g.id WHERE m.sub = :sub AND m.provider = :provider")
+                .bind("sub", sub)
+                .bind("provider", provider)
+                .map(row -> {
+                    MemberInfo memberInfo = MemberInfo.mapping(row);
+                    GroupInfo groupInfo = GroupInfo.builder()
+                            .id(row.get("groupInfoId", Long.class))
+                            .ordinal(row.get("ordinal", Long.class))
+                            .region(row.get("region", String.class))
+                            .ban(row.get("ban", Long.class))
+                            .build();
+
+                    return new Member(memberInfo, groupInfo);
+                })
+                .first()
                 .doOnNext(member -> log.info(member.toString()));
     }
 
@@ -119,5 +167,35 @@ public class MemberServiceImpl implements MemberService {
                 .then()
                 .doOnSuccess(result -> log.info("{}", id))
                 .doOnError(error -> log.info("{}", id));
+    }
+
+    @Override
+    public Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name) {
+
+        Long ordinal = groupInfoDTO.getOrdinal();
+        String region = groupInfoDTO.getRegion();
+        Long ban = groupInfoDTO.getBan();
+
+        if( ordinal == null ||
+                region == null ||
+                ban == null ||
+                name == null) {
+            return Mono.just(false);
+        }
+
+
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        String sql = "SELECT count(g.id) > 0 'is_exist' FROM group_info g JOIN member m WHERE g.ordinal = :ordinal and g.region = :region and g.ban = :ban and m.name = :name";
+
+        return template.getDatabaseClient()
+                .sql(sql)
+                .bind("ordinal", ordinal)
+                .bind("region", region)
+                .bind("ban", ban)
+                .bind("name", name)
+                .map(row -> row.get("is_exist",Long.class) > 0   )
+                .first()
+                .log();
     }
 }
