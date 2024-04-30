@@ -1,6 +1,7 @@
 package com.yeminjilim.ssafyworld.letter.controller;
 
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO;
+import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.ReceivedLetterResponse;
 import com.yeminjilim.ssafyworld.letter.service.LetterService;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
@@ -55,7 +56,7 @@ public class LetterController {
                                 .build())); // TODO : customError로 변경
     }
 
-    @DeleteMapping("/letter/{letterId}") //보낸 사람만 삭제가능
+    @DeleteMapping("/{letterId}") //보낸 사람만 삭제가능
     public Mono<Void> deleteLetter(@PathVariable Long letterId) {
         //TODO 로그인 구현 시 삭제
         Long tmpFromUserId = 1L;
@@ -66,7 +67,7 @@ public class LetterController {
     }
 
     //나에게 온 편지 숨기기
-    @PostMapping("/letter/hidden")
+    @PostMapping("/hidden")
     public Mono<ResponseEntity> hideLetter(@RequestBody Mono<LetterDTO.HideRequest> request) {
         //TODO 로그인 구현 시 삭제
         Long tmpFromUserId = 2L;
@@ -74,7 +75,15 @@ public class LetterController {
         Member member = new Member(tmpMemberInfo, null);
 
         return letterService.hideLetter(request, member)
-                .map((letter) -> LetterDTO.HideRequest.builder().letterId(letter.getId()).build())
+                .map((letter) -> LetterDTO.HideRequest.builder().letterId(letter.getId()).hidden(letter.getHidden()).build())
                 .map(ResponseEntity::ok);
+    }
+
+    @GetMapping("/hidden")  // TODO : 사용자 정보(UserId) Header 에서 받아오기
+    public Mono<ResponseEntity<Flux<ReceivedLetterResponse>>> getHideLetter() {
+        //TODO 로그인 구현 시 삭제
+        Long tmpFromUserId = 4L;
+
+        return Mono.just(ResponseEntity.ok().body(letterService.getHideLetter(tmpFromUserId)));
     }
 }
