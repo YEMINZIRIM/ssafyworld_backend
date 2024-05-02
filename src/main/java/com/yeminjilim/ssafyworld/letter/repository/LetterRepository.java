@@ -6,6 +6,4 @@ import reactor.core.publisher.Flux;
 
 public interface LetterRepository extends ReactiveCrudRepository<Letter, Long> {
     Flux<Letter> findAllByToUser(Long toUser);
-
-    Flux<Letter> findAllByFromUser(Long fromUser);
 }
