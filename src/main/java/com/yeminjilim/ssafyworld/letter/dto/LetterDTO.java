@@ -1,8 +1,6 @@
 package com.yeminjilim.ssafyworld.letter.dto;
 
 import com.yeminjilim.ssafyworld.letter.entity.Letter;
-import com.yeminjilim.ssafyworld.member.entity.GroupInfo;
-import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import com.yeminjilim.ssafyworld.util.TimeFormatUtil;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -65,7 +63,7 @@ public class LetterDTO {
     }
 
     @Getter
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @AllArgsConstructor
     public static class SentLetterResponse {
         private Long letterId;
         private Long toUserOrdinal;
@@ -75,17 +73,5 @@ public class LetterDTO {
         private String title;
         private String content;
         private LocalDateTime createdAt;
-
-        public static SentLetterResponse of(Letter letter, MemberInfo memberInfo, GroupInfo groupInfo) {
-            return new SentLetterResponse(
-                    letter.getId(),
-                    groupInfo.getOrdinal(),
-                    groupInfo.getRegion(),
-                    groupInfo.getBan(),
-                    memberInfo.getName(),
-                    letter.getTitle(),
-                    letter.getContent(),
-                    letter.getCreatedAt());
-        }
     }
 }

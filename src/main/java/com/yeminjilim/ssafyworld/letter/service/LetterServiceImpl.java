@@ -10,11 +10,12 @@ import com.yeminjilim.ssafyworld.letter.error.CustomLetterException;
 import com.yeminjilim.ssafyworld.letter.error.LetterErrorCode;
 import com.yeminjilim.ssafyworld.letter.repository.LetterRepository;
 import com.yeminjilim.ssafyworld.member.entity.Member;
-import com.yeminjilim.ssafyworld.member.repository.GroupInfoRepository;
-import com.yeminjilim.ssafyworld.member.repository.MemberInfoRepository;
+
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,8 +25,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class LetterServiceImpl implements LetterService {
     private final LetterRepository letterRepository;
-    private final MemberInfoRepository memberInfoRepository;
-    private final GroupInfoRepository groupInfoRepository;
+    private final R2dbcEntityTemplate r2dbcEntityTemplate;
 
     @Override
     public Mono<CreateResponse> createLetter(Long userId, Mono<CreateRequest> request) throws RuntimeException {
@@ -50,15 +50,23 @@ public class LetterServiceImpl implements LetterService {
 
     @Override
     public Flux<LetterDTO.SentLetterResponse> findAllSentLetters(Long userId) {
-        return letterRepository.findAllByFromUser(userId)
-                .flatMap(letter ->
-                        memberInfoRepository.findById(userId)
-                                .flatMap(memberInfo ->
-                                        groupInfoRepository.findById(memberInfo.getGroupInfoId())
-                                                .map(groupInfo ->
-                                                        LetterDTO.SentLetterResponse.of(letter, memberInfo, groupInfo))
-                                )
-                );
+        String query = "SELECT l.id AS letterId, g.ordinal AS toUserOrdinal, g.region AS toUserRegion, " +
+                "g.ban AS toUserBan, m.name AS toUserName, l.title, l.content, l.createdAt " +
+                "FROM letter l " +
+                "JOIN member m ON l.toUser = m.id " +
+                "JOIN group_info g ON m.groupInfoId = g.id";
+
+        return r2dbcEntityTemplate.getDatabaseClient().sql(query)
+                .map((row, metadata) -> new LetterDTO.SentLetterResponse(
+                        row.get("letterId", Long.class),
+                        row.get("toUserOrdinal", Long.class),
+                        row.get("toUserRegion", String.class),
+                        row.get("toUserBan", Long.class),
+                        row.get("toUserName", String.class),
+                        row.get("title", String.class),
+                        row.get("content", String.class),
+                        row.get("createdAt", LocalDateTime.class)))
+                .all();
     }
 
     @Override

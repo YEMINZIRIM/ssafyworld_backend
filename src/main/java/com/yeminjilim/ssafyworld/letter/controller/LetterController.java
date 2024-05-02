@@ -82,7 +82,7 @@ public class LetterController {
     @GetMapping("/hidden")  // TODO : 사용자 정보(UserId) Header 에서 받아오기
     public Mono<ResponseEntity<Flux<ReceivedLetterResponse>>> getHideLetter() {
         //TODO 로그인 구현 시 삭제
-        Long tmpFromUserId = 4L;
+        Long tmpFromUserId = 2L;
 
         return Mono.just(ResponseEntity.ok().body(letterService.getHideLetter(tmpFromUserId)));
     }
