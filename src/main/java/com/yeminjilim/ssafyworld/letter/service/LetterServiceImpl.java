@@ -95,6 +95,12 @@ public class LetterServiceImpl implements LetterService {
                 .flatMap(letterRepository::save);
     }
 
+    @Override
+    public Flux<ReceivedLetterResponse> getHideLetter(Long userId) {
+        return letterRepository.findAllByToUserAndHiddenIsTrue(userId)
+                .map(ReceivedLetterResponse::of);
+    }
+
     private boolean validate(Long userId, CreateRequest request) {
         if (isEqualUser(userId, request.getToUser()))
             throw new CustomLetterException(LetterErrorCode.CANT_SEND_TO_ME);

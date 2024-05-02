@@ -22,4 +22,6 @@ public interface LetterService {
     Mono<Void> deleteLetter(Long letterId, Member member);
 
     Mono<Letter> hideLetter(Mono<HideRequest>  request, Member member);
+
+    Flux<ReceivedLetterResponse> getHideLetter(Long userId);
 }
