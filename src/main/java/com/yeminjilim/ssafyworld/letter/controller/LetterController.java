@@ -1,14 +1,20 @@
 package com.yeminjilim.ssafyworld.letter.controller;
 
+import com.yeminjilim.ssafyworld.jwt.JWTProvider;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.ReceivedLetterResponse;
+import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.SentLetterResponse;
 import com.yeminjilim.ssafyworld.letter.service.LetterService;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
+import com.yeminjilim.ssafyworld.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,13 +25,20 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/letter")
 public class LetterController {
     private final LetterService letterService;
+    private final MemberService memberService;
+    private final JWTProvider jwtProvider;
 
     @PostMapping
-    public Mono<ResponseEntity<LetterDTO.CreateResponse>> createLetter(@RequestBody Mono<LetterDTO.CreateRequest> request) {
-        Long tmpFromUserId = 1L; //@TODO 로그인 구현 시 삭제
+    public Mono<ResponseEntity<LetterDTO.CreateResponse>> createLetter(@RequestBody Mono<LetterDTO.CreateRequest> request, ServerHttpRequest serverHttpRequest) {
+        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
 
-        return letterService.createLetter(tmpFromUserId, request)
-                .map(ResponseEntity::ok);
+        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
+        String sub = userDetails.getUsername();
+
+        return memberService.findBySub(sub)
+                .flatMap((r) ->
+                    letterService.createLetter(r.getMemberInfo().getMemberId(), request)
+                ).map(ResponseEntity::ok);
     }
 
     @GetMapping("/{letterId}")
@@ -48,10 +61,17 @@ public class LetterController {
                                 .build())); // TODO : customError로 변경
     }
 
-    @GetMapping("/send/{userId}")  // TODO : 사용자 정보(UserId) Header 에서 받아오기
-    public Mono<ResponseEntity<Flux<LetterDTO.SentLetterResponse>>> getAllSentLetters(@PathVariable Long userId) {
-        Flux<LetterDTO.SentLetterResponse> letters = letterService.findAllSentLetters(userId);
-        return Mono.just(ResponseEntity.ok().body(letters))
+    @GetMapping("/send")  // TODO : 사용자 정보(UserId) Header 에서 받아오기
+    public Mono<ResponseEntity<Flux<LetterDTO.SentLetterResponse>>> getAllSentLetters(ServerHttpRequest serverHttpRequest) {
+        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
+
+        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
+        String sub = userDetails.getUsername();
+
+        Flux<SentLetterResponse> sentLetterResponseFlux = memberService.findBySub(sub)
+                .flux().flatMap(r -> letterService.findAllSentLetters(r.getMemberInfo().getMemberId()));
+
+        return Mono.just(ResponseEntity.ok().body(sentLetterResponseFlux))
                 .onErrorResume(Exception.class,
                         ex -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .build())); // TODO : customError로 변경
