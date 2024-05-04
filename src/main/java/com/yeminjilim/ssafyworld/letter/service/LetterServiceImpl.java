@@ -107,6 +107,14 @@ public class LetterServiceImpl implements LetterService {
             throw new CustomLetterException(LetterErrorCode.BAD_REQUEST);
         }
 
+        if (request.getTitle().length() > 50) {
+            throw new CustomLetterException(LetterErrorCode.TITLE_TOO_LONG);
+        }
+
+        if (request.getContent().length() > 5000) {
+            throw new CustomLetterException(LetterErrorCode.CONTENT_TOO_LONG);
+        }
+
         if (isEqualUser(userId, request.getToUser()))
             throw new CustomLetterException(LetterErrorCode.CANT_SEND_TO_ME);
 
