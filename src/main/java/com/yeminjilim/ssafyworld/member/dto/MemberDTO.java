@@ -3,11 +3,16 @@ package com.yeminjilim.ssafyworld.member.dto;
 
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Builder(access = AccessLevel.PRIVATE)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MemberDTO {
 
     private Long memberId;

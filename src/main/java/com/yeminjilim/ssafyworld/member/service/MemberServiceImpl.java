@@ -37,7 +37,7 @@ public class MemberServiceImpl implements MemberService {
         R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
 
         return template.getDatabaseClient()
-                .sql("SELECT m.*, g.* FROM member m JOIN group_info g ON m.groupInfoId = g.id WHERE m.memberId = :id")
+                .sql("SELECT m.*, g.* FROM member m JOIN group_info g ON m.groupInfoId = g.id WHERE m.id = :id")
                 .bind("id",id)
                 .map(row -> {
                     MemberInfo memberInfo = MemberInfo.mapping(row);
@@ -60,7 +60,7 @@ public class MemberServiceImpl implements MemberService {
         R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
 
         return template.getDatabaseClient()
-                .sql("SELECT m.*, g.* FROM member m JOIN group_info g ON m.groupInfoId = g.id WHERE m.memberId = :sub")
+                .sql("SELECT m.*, g.* FROM member m JOIN group_info g ON m.groupInfoId = g.id WHERE m.id = :sub")
                 .bind("sub",sub)
                 .map(row -> {
                     MemberInfo memberInfo = MemberInfo.mapping(row);
@@ -144,7 +144,7 @@ public class MemberServiceImpl implements MemberService {
 
         MemberInfo updatedMemberInfo = memberDTO.toEntity();
         return template.update(MemberInfo.class)
-                .matching(query(where("memberId").is(updatedMemberInfo.getMemberId())))
+                .matching(query(where("id").is(updatedMemberInfo.getMemberId())))
                 .apply(Update.update("name", updatedMemberInfo.getName())
                         .set("sub", updatedMemberInfo.getSub())
                         .set("provider", updatedMemberInfo.getProvider())
@@ -162,7 +162,7 @@ public class MemberServiceImpl implements MemberService {
         R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
 
         return template.getDatabaseClient()
-                .sql("DELETE FROM member where memberId = :id")
+                .sql("DELETE FROM member where id = :id")
                 .bind("id", id)
                 .then()
                 .doOnSuccess(result -> log.info("{}", id))

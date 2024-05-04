@@ -55,6 +55,10 @@ dependencies {
     //json
     implementation 'org.json:json:20210307'
 
+    // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-webflux-ui
+
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-webflux-ui', version: '1.7.0'
+
 }
 
 tasks.named('bootBuildImage') {

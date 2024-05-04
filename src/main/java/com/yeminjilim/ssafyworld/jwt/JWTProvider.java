@@ -77,7 +77,7 @@ public class JWTProvider {
 
         JWT jwt = new JWT(token);
 
-        String userId = jwt.get("userId",String.class);
+        String userId = jwt.get("sub",String.class);
 
         if(userId == null){
             //TODO : JWT의 body에 필수 필드가 없는 경우

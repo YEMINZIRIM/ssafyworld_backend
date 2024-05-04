@@ -54,7 +54,7 @@ public class MemberInfo {
 
     public static MemberInfo mapping(Row row) {
         return builder()
-                .memberId(row.get("memberId",Long.class))
+                .memberId(row.get("id",Long.class))
                 .sub(row.get("sub",String.class))
                 .provider(row.get("provider",String.class))
                 .groupInfoId(row.get("groupInfoId",Long.class))
