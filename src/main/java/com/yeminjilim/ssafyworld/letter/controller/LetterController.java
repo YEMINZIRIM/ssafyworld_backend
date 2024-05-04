@@ -30,6 +30,7 @@ public class LetterController {
 
     @GetMapping("/{letterId}")
     public Mono<ResponseEntity<LetterDTO.ReceivedLetterResponse>> getLetterDetail(@PathVariable Long letterId) {
+        //권한 없음 추가
         return letterService.findByLetterId(letterId)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build())

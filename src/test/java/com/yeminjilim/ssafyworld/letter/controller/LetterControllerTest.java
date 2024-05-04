@@ -2,12 +2,18 @@ package com.yeminjilim.ssafyworld.letter.controller;
 
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateRequest;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.CreateResponse;
+import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.ReceivedLetterResponse;
+import com.yeminjilim.ssafyworld.letter.error.CustomLetterException;
+import com.yeminjilim.ssafyworld.letter.error.LetterErrorCode;
+import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -16,18 +22,20 @@ import reactor.test.StepVerifier;
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @AutoConfigureWebTestClient
 public class LetterControllerTest {
+    public static final String TITLE = "title입니다";
+    public static final String CONTENT = "content입니다";
+    public static final long RECEIVER_ID = 2L;
+
     @Autowired
     private WebClient webClient;
 
     @Test
+    @Order(1)
     public void createLetterTest() {
-        String title = "title입니다";
-        String content = "content입니다";
-        long receiverId = 2L;
         Mono<ResponseEntity<CreateResponse>> responseMono = this.webClient
                 .post()
                 .uri("/letter")
-                .bodyValue(new CreateRequest(receiverId, title, content))
+                .bodyValue(new CreateRequest(RECEIVER_ID, TITLE, CONTENT))
                 .retrieve()
                 .toEntity(CreateResponse.class)
                 .doOnNext(System.out::println);
@@ -35,10 +43,69 @@ public class LetterControllerTest {
         StepVerifier.create(responseMono)
                 .assertNext(prod -> {
                     Assertions.assertThat(prod).isNotNull();
-                    Assertions.assertThat(prod.getBody().getTitle()).isEqualTo(title);
-                    Assertions.assertThat(prod.getBody().getContent()).isEqualTo(content);
-                    Assertions.assertThat(prod.getBody().getToUser()).isEqualTo(receiverId);
+                    Assertions.assertThat(prod.getBody().getTitle()).isEqualTo(TITLE);
+                    Assertions.assertThat(prod.getBody().getContent()).isEqualTo(CONTENT);
+                    Assertions.assertThat(prod.getBody().getToUser()).isEqualTo(RECEIVER_ID);
                 })
                 .verifyComplete();
+    }
+
+    @Test
+    @Order(2)
+    public void getLetterDetail() {
+        long receiverId = 2L;
+        AtomicReference<Long> savedId = new AtomicReference<>(0L);
+
+        Mono<ResponseEntity<CreateResponse>> responseMono = this.webClient
+                .post()
+                .uri("/letter")
+                .bodyValue(new CreateRequest(receiverId, TITLE, CONTENT))
+                .retrieve()
+                .toEntity(CreateResponse.class)
+                .doOnNext((r) -> {
+                    savedId.set(r.getBody().getLetterId());
+                });
+
+        StepVerifier.create(responseMono)
+                .assertNext(prod -> {
+                    Assertions.assertThat(prod).isNotNull();
+                })
+                .verifyComplete();
+
+        Mono<ResponseEntity<ReceivedLetterResponse>> responseEntityMono = this.webClient
+                .get()
+                .uri("/letter/{letterId}", savedId.get())
+                .retrieve()
+                .toEntity(ReceivedLetterResponse.class)
+                .doOnNext(System.out::println);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(prod -> {
+                    Assertions.assertThat(prod).isNotNull();
+                    Assertions.assertThat(prod.getBody().getTitle()).isEqualTo(TITLE);
+                    Assertions.assertThat(prod.getBody().getContent()).isEqualTo(CONTENT);
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @Order(2)
+    public void getLetterDetail_NOT_FOUND() {
+        Mono<ResponseEntity<ReceivedLetterResponse>> responseEntityMono = this.webClient
+                .get()
+                .uri("/letter/{letterId}", -1L)
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response ->
+                        Mono.error(
+                                new CustomLetterException(
+                                        LetterErrorCode.NOT_FOUND
+                                )
+                        )
+                ).toEntity(ReceivedLetterResponse.class);
+
+        StepVerifier.create(responseEntityMono)
+                .expectErrorMatches(response ->
+                        response instanceof CustomLetterException)
+                .verify();
     }
 }
