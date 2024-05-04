@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -29,9 +30,7 @@ public class LetterServiceTest {
     @Mock
     LetterRepository letterRepository;
     @Mock
-    MemberInfoRepository memberInfoRepository;
-    @Mock
-    GroupInfoRepository groupInfoRepository;
+    R2dbcEntityTemplate r2dbcEntityTemplate;
 
     LetterService letterService;
 
@@ -45,7 +44,7 @@ public class LetterServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        letterService = new LetterServiceImpl(letterRepository, memberInfoRepository, groupInfoRepository);
+        letterService = new LetterServiceImpl(letterRepository, r2dbcEntityTemplate);
 
         //letterRepository에서 반환할 db에 저장된 Letter
         mockLetter = new Letter(1L, toUserId, fromUserId, testTitle, testContent, false, LocalDateTime.now(), LocalDateTime.now());

@@ -28,14 +28,16 @@ public class LetterDTO {
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor
     public static class CreateResponse {
+        private Long letterId;
         private Long toUser;
         private String title;
         private String content;
         private String createdAt;
 
         public static CreateResponse of (Letter letter) {
-            return new CreateResponse(letter.getToUser(), letter.getTitle(), letter.getContent(), TimeFormatUtil.parse(letter.getCreatedAt()));
+            return new CreateResponse(letter.getId(), letter.getToUser(), letter.getTitle(), letter.getContent(), TimeFormatUtil.parse(letter.getCreatedAt()));
         }
     }
 
@@ -50,6 +52,7 @@ public class LetterDTO {
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor
     public static class ReceivedLetterResponse {
         private Long letterId;
         private String title;
