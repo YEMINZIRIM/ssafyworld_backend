@@ -28,6 +28,7 @@ public class LetterDTO {
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor
     public static class CreateResponse {
         private Long toUser;
         private String title;
