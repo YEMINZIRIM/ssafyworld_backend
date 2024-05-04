@@ -35,11 +35,17 @@ public class GroupInfoController {
                     .collectList()
                     .map(ResponseEntity::ok);
         }
+        Long ban = request.getBan();
+        if(ban == null) {
+            return groupInfoService.findAllBan(ordinal,region)
+                    .collectList()
+                    .map(ResponseEntity::ok);
+        }
 
-        return groupInfoService.findAllBan(ordinal,region)
-                .collectList()
+        return groupInfoService.findIdByOrdinalAndRegionAndBan(ordinal, region, ban)
                 .map(ResponseEntity::ok);
 
     }
+
 
 }

@@ -7,6 +7,7 @@ import io.r2dbc.spi.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.relational.core.query.Query;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -107,6 +108,23 @@ public class GroupInfoServiceImpl implements GroupInfoService {
                 .all()
                 .log();
     }
+
+    @Override
+    public Mono<Long> findIdByOrdinalAndRegionAndBan(Long ordinal, String region, Long ban) {
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        String sql = "SELECT id from group_info where ordinal = :ordinal and region = :region and ban = :ban";
+
+        return template.getDatabaseClient()
+                .sql(sql)
+                .bind("ordinal", ordinal)
+                .bind("region", region)
+                .bind("ban", ban)
+                .map(row -> row.get("id", Long.class))
+                .one();
+
+    }
+
 
 
 

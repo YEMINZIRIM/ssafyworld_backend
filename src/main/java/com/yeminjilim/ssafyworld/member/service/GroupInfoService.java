@@ -19,5 +19,6 @@ public interface GroupInfoService {
 
     Flux<Long> findAllBan(Long ordinal, String region);
 
+    Mono<Long> findIdByOrdinalAndRegionAndBan(Long ordinal, String region, Long ban);
 
 }
