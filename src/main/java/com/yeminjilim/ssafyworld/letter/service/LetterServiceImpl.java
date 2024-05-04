@@ -102,6 +102,11 @@ public class LetterServiceImpl implements LetterService {
     }
 
     private boolean validate(Long userId, CreateRequest request) {
+        //TODO: 회의 - spring validation을 쓸건가?
+        if (userId == null || request.getContent() == null || request.getTitle() == null || request.getToUser() == null) {
+            throw new CustomLetterException(LetterErrorCode.BAD_REQUEST);
+        }
+
         if (isEqualUser(userId, request.getToUser()))
             throw new CustomLetterException(LetterErrorCode.CANT_SEND_TO_ME);
 
