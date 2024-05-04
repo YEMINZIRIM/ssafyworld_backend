@@ -40,9 +40,11 @@ public class CustomWebSocketHandler implements WebSocketHandler {
                         long senderId = json.getLong("memberId");
                         String sender = json.getString("sender");
                         String content = json.getString("content");
+                        String realChatRoom = chatRoom.substring(4);
+
 
                         ChatDto chatDto = new ChatDto();
-                        chatDto.setGroupInfoId(Long.valueOf(chatRoom));
+                        chatDto.setGroupInfoId(Long.valueOf(realChatRoom));
                         chatDto.setSenderId(senderId);
                         chatDto.setSenderName(sender);
                         chatDto.setContent(content);
