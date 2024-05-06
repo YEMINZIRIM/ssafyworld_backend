@@ -1,9 +1,7 @@
 package com.yeminjilim.ssafyworld.member.controller;
 
 import com.yeminjilim.ssafyworld.jwt.JWTProvider;
-import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
-import com.yeminjilim.ssafyworld.member.dto.LoginRequestDto;
-import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.dto.*;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.error.CustomMemberException;
 import com.yeminjilim.ssafyworld.member.error.MemberErrorCode;
@@ -41,13 +39,58 @@ public class MemberController {
                 .map(ResponseEntity::ok);
     }
 
-    //회원수정
     @PutMapping("/member")
-    public Mono<ResponseEntity<MemberDTO>> update(@RequestBody MemberDTO request) {
+    public Mono<ResponseEntity<?>> update(@RequestBody UpdateMemberDto request, ServerHttpRequest serverHttpRequest) {
+        try {
+            Authentication authentication = jwtProvider.getToken(serverHttpRequest);
 
-        return memberService.update(request)
-                .map(MemberDTO::toDTO)
-                .map(ResponseEntity::ok);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String sub = userDetails.getUsername();
+
+            return memberService.findBySub(sub)
+                    .flatMap(member -> {
+                        if (member != null) {
+                            if (request.getQuestionId().equals(member.getMemberInfo().getQuestionId()) &&
+                                    request.getAnswer().equals(member.getMemberInfo().getAnswer())) {
+                                return memberService.update(request, member.getMemberInfo().getMemberId())
+                                        .map(MemberDTO::toDTO)
+                                        .map(ResponseEntity::ok);
+                            } else {
+                                return Mono.error(new CustomMemberException(MemberErrorCode.INVALID_QUESTION_ANSWER));
+                            }
+                        } else {
+                            return Mono.error(new CustomMemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+                        }
+                    });
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.badRequest().body("JWT 헤더 인증 과정 중 에러발생 : " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/member")
+    public Mono<ResponseEntity<?>> delete(@RequestBody RequestQuestionDTO request, ServerHttpRequest serverHttpRequest) {
+        try {
+            Authentication authentication = jwtProvider.getToken(serverHttpRequest);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String sub = userDetails.getUsername();
+
+            return memberService.findBySub(sub)
+                    .flatMap(member -> {
+                        if (member != null) {
+                            if (request.getQuestionId().equals(member.getMemberInfo().getQuestionId()) &&
+                                    request.getAnswer().equals(member.getMemberInfo().getAnswer())) {
+                                return memberService.delete(member.getMemberInfo().getMemberId())
+                                        .then(Mono.just(ResponseEntity.ok().build()));
+                            } else {
+                                return Mono.error(new CustomMemberException(MemberErrorCode.INVALID_QUESTION_ANSWER));
+                            }
+                        } else {
+                            return Mono.error(new CustomMemberException(MemberErrorCode.MEMBER_NOT_DELETE));
+                        }
+                    });
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.badRequest().body("JWT 헤더 인증 과정 중 에러발생 : " + e.getMessage()));
+        }
     }
 
 

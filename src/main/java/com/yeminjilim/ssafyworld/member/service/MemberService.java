@@ -2,6 +2,7 @@ package com.yeminjilim.ssafyworld.member.service;
 
 import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.dto.UpdateMemberDto;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import reactor.core.publisher.Flux;
@@ -16,9 +17,10 @@ public interface MemberService {
     Flux<Member> findAll();
     Mono<Member> findBySubAndProvider(String sub, String provider);
     Mono<MemberInfo> save(MemberDTO memberDTO);
-    Mono<MemberInfo> update(MemberDTO memberDTO);
+    Mono<MemberInfo> update(UpdateMemberDto memberDTO, Long memberId);
 
     Mono<Void> delete(Long id);
     Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name);
+
 
 }

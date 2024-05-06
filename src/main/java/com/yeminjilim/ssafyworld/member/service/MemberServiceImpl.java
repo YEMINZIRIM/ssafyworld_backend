@@ -2,6 +2,7 @@ package com.yeminjilim.ssafyworld.member.service;
 
 import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.dto.UpdateMemberDto;
 import com.yeminjilim.ssafyworld.member.entity.GroupInfo;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
@@ -138,20 +139,14 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public Mono<MemberInfo> update(MemberDTO memberDTO) {
+    public Mono<MemberInfo> update(UpdateMemberDto memberDTO, Long memberId) {
 
         R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
 
         MemberInfo updatedMemberInfo = memberDTO.toEntity();
         return template.update(MemberInfo.class)
-                .matching(query(where("id").is(updatedMemberInfo.getMemberId())))
+                .matching(query(where("id").is(memberId)))
                 .apply(Update.update("name", updatedMemberInfo.getName())
-                        .set("sub", updatedMemberInfo.getSub())
-                        .set("provider", updatedMemberInfo.getProvider())
-                        .set("groupInfoId", updatedMemberInfo.getGroupInfoId())
-                        .set("serialNumber", updatedMemberInfo.getSerialNumber())
-                        .set("questionId", updatedMemberInfo.getQuestionId())
-                        .set("answer", updatedMemberInfo.getAnswer())
                 )
                 .then(Mono.just(updatedMemberInfo));
     }
