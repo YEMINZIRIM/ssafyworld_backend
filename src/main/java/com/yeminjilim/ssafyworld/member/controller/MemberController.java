@@ -1,9 +1,7 @@
 package com.yeminjilim.ssafyworld.member.controller;
 
 import com.yeminjilim.ssafyworld.jwt.JWTProvider;
-import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
-import com.yeminjilim.ssafyworld.member.dto.LoginRequestDto;
-import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.dto.*;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.error.CustomMemberException;
 import com.yeminjilim.ssafyworld.member.error.MemberErrorCode;
@@ -41,13 +39,25 @@ public class MemberController {
                 .map(ResponseEntity::ok);
     }
 
-    //회원수정
     @PutMapping("/member")
-    public Mono<ResponseEntity<MemberDTO>> update(@RequestBody MemberDTO request) {
+    public Mono<ResponseEntity<?>> update(@RequestBody UpdateMemberDto request, ServerHttpRequest serverHttpRequest) {
 
-        return memberService.update(request)
-                .map(MemberDTO::toDTO)
-                .map(ResponseEntity::ok);
+            Authentication authentication = jwtProvider.getToken(serverHttpRequest);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String sub = userDetails.getUsername();
+
+            return memberService.update(request, sub);
+    }
+
+
+    @DeleteMapping("/member")
+    public Mono<ResponseEntity<?>> delete(@RequestBody RequestQuestionDTO request, ServerHttpRequest serverHttpRequest) {
+
+            Authentication authentication = jwtProvider.getToken(serverHttpRequest);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String sub = userDetails.getUsername();
+
+            return memberService.delete(request, sub);
     }
 
     @PutMapping

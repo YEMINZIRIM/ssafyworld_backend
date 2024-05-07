@@ -1,12 +1,12 @@
 package com.yeminjilim.ssafyworld.member.dto;
 
 import com.yeminjilim.ssafyworld.member.entity.Question;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 @Builder(access = AccessLevel.PRIVATE)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class QuestionDTO {
 
     private Long id;

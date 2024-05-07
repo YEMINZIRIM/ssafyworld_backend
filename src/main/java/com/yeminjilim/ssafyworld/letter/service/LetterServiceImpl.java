@@ -54,9 +54,11 @@ public class LetterServiceImpl implements LetterService {
                 "g.ban AS toUserBan, m.name AS toUserName, l.title, l.content, l.createdAt " +
                 "FROM letter l " +
                 "JOIN member m ON l.toUser = m.id " +
-                "JOIN group_info g ON m.groupInfoId = g.id";
+                "JOIN group_info g ON m.groupInfoId = g.id " +
+                "WHERE l.fromUser = :userId";
 
         return r2dbcEntityTemplate.getDatabaseClient().sql(query)
+                .bind("userId", userId)
                 .map((row, metadata) -> new LetterDTO.SentLetterResponse(
                         row.get("letterId", Long.class),
                         row.get("toUserOrdinal", Long.class),
