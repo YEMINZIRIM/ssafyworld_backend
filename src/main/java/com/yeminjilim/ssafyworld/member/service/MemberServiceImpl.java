@@ -2,9 +2,13 @@ package com.yeminjilim.ssafyworld.member.service;
 
 import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.dto.RequestQuestionDTO;
+import com.yeminjilim.ssafyworld.member.dto.UpdateMemberDto;
 import com.yeminjilim.ssafyworld.member.entity.GroupInfo;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
+import com.yeminjilim.ssafyworld.member.error.CustomMemberException;
+import com.yeminjilim.ssafyworld.member.error.MemberErrorCode;
 import com.yeminjilim.ssafyworld.member.repository.MemberInfoRepository;
 import io.r2dbc.spi.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.relational.core.query.Update;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -137,37 +142,72 @@ public class MemberServiceImpl implements MemberService {
 
 
 
+//    @Override
+//    public Mono<MemberInfo> update(UpdateMemberDto memberDTO, Long memberId) {
+//
+//        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+//
+//        MemberInfo updatedMemberInfo = memberDTO.toEntity();
+//        return template.update(MemberInfo.class)
+//                .matching(query(where("id").is(memberId)))
+//                .apply(Update.update("name", updatedMemberInfo.getName())
+//                )
+//                .then(Mono.just(updatedMemberInfo));
+//    }
+
     @Override
-    public Mono<MemberInfo> update(MemberDTO memberDTO) {
+    public Mono<ResponseEntity<?>> update(UpdateMemberDto request, String sub) {
+        return findBySub(sub)
+                .flatMap(member -> {
+                    if (member == null) {
+                        return Mono.error(new CustomMemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+                    }
+                    if(!verify(request, member.getMemberInfo())) {
+                        return Mono.error(new CustomMemberException(MemberErrorCode.INVALID_QUESTION_ANSWER));
+                    }
+                    R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
 
-        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
-
-        MemberInfo updatedMemberInfo = memberDTO.toEntity();
-        return template.update(MemberInfo.class)
-                .matching(query(where("id").is(updatedMemberInfo.getMemberId())))
-                .apply(Update.update("name", updatedMemberInfo.getName())
-                        .set("sub", updatedMemberInfo.getSub())
-                        .set("provider", updatedMemberInfo.getProvider())
-                        .set("groupInfoId", updatedMemberInfo.getGroupInfoId())
-                        .set("serialNumber", updatedMemberInfo.getSerialNumber())
-                        .set("questionId", updatedMemberInfo.getQuestionId())
-                        .set("answer", updatedMemberInfo.getAnswer())
-                )
-                .then(Mono.just(updatedMemberInfo));
+                    MemberInfo updatedMemberInfo = request.toEntity();
+                    return template.update(MemberInfo.class)
+                            .matching(query(where("id").is(member.getMemberInfo().getMemberId())))
+                            .apply(Update.update("name", updatedMemberInfo.getName())
+                            )
+                            .then(Mono.just(updatedMemberInfo))
+                            .map(ResponseEntity::ok);
+                });
     }
 
     @Override
-    public Mono<Void> delete(Long id) {
+    public Mono<ResponseEntity<?>> delete(RequestQuestionDTO request, String sub) {
+        return findBySub(sub)
+                .flatMap(member -> {
+                    if (member == null) {
+                        return Mono.error(new CustomMemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+                    }
+                    if(!verify(request, member.getMemberInfo())) {
+                        return Mono.error(new CustomMemberException(MemberErrorCode.INVALID_QUESTION_ANSWER));
+                    }
+                    R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
 
-        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
-
-        return template.getDatabaseClient()
-                .sql("DELETE FROM member where id = :id")
-                .bind("id", id)
-                .then()
-                .doOnSuccess(result -> log.info("{}", id))
-                .doOnError(error -> log.info("{}", id));
+                    return template.getDatabaseClient()
+                            .sql("DELETE FROM member where id = :id")
+                            .bind("id", member.getMemberInfo().getMemberId())
+                            .then()
+                            .map(ResponseEntity::ok);
+                });
     }
+
+    //질문 && 답변
+    private boolean verify(UpdateMemberDto request, MemberInfo memberInfo) {
+        return request.getQuestionId().equals(memberInfo.getQuestionId()) &&
+                request.getAnswer().equals(memberInfo.getAnswer());
+    }
+
+    private boolean verify(RequestQuestionDTO request, MemberInfo memberInfo) {
+        return request.getQuestionId().equals(memberInfo.getQuestionId()) &&
+                request.getAnswer().equals(memberInfo.getAnswer());
+    }
+
 
     @Override
     public Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name) {
