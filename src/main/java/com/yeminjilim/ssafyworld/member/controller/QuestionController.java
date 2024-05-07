@@ -1,13 +1,21 @@
 package com.yeminjilim.ssafyworld.member.controller;
 
+import com.yeminjilim.ssafyworld.jwt.JWTProvider;
 import com.yeminjilim.ssafyworld.member.dto.QuestionDTO;
+import com.yeminjilim.ssafyworld.member.service.MemberService;
 import com.yeminjilim.ssafyworld.member.service.QuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.server.HttpServerRequest;
 
 import java.util.List;
+
+import static com.yeminjilim.ssafyworld.member.dto.QuestionDTO.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -15,6 +23,8 @@ import java.util.List;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final MemberService memberService;
+    private final JWTProvider jwtProvider;
 
     @GetMapping
     public Mono<ResponseEntity<List<QuestionDTO>>> findAll() {
@@ -65,6 +75,21 @@ public class QuestionController {
 
         return questionService.delete(id)
                 .map(ResponseEntity::ok);
+    }
+
+    @PostMapping("/match")
+    public Mono<ResponseEntity<Void>> matching(@RequestBody QuestionMatchingDTO request,
+                                               ServerHttpRequest serverHttpRequest) {
+        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
+        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
+
+        String sub = userDetails.getUsername();
+        Long id = request.getId();
+        String answer = request.getAnswer().trim();
+
+        return memberService.match(sub, id, answer)
+                .map((isMatch) -> isMatch ? ResponseEntity.ok() : ResponseEntity.badRequest())
+                .map(ResponseEntity.HeadersBuilder::build);
     }
 
 

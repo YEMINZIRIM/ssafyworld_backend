@@ -20,5 +20,6 @@ public interface MemberService {
 
     Mono<Void> delete(Long id);
     Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name);
+    Mono<Boolean> match(String sub, Long questionId, String answer);
 
 }

@@ -5,6 +5,8 @@ import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
 import com.yeminjilim.ssafyworld.member.entity.GroupInfo;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
+import com.yeminjilim.ssafyworld.member.error.CustomMemberException;
+import com.yeminjilim.ssafyworld.member.error.MemberErrorCode;
 import com.yeminjilim.ssafyworld.member.repository.MemberInfoRepository;
 import io.r2dbc.spi.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
@@ -197,5 +199,14 @@ public class MemberServiceImpl implements MemberService {
                 .map(row -> row.get("is_exist",Long.class) > 0   )
                 .first()
                 .log();
+    }
+
+    @Override
+    public Mono<Boolean> match(String sub, Long questionId, String answer) {
+        return findBySub(sub)
+                .switchIfEmpty(Mono.error(new CustomMemberException(MemberErrorCode.MEMBER_NOT_FOUND)))
+                .map(Member::getMemberInfo)
+                .map(memberInfo -> memberInfo.getQuestionId().equals(questionId)
+                        && answer.equals(memberInfo.getAnswer()));
     }
 }

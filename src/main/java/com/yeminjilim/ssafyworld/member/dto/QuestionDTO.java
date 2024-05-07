@@ -19,4 +19,11 @@ public class QuestionDTO {
                 .build();
     }
 
+
+    @Data
+    public static class QuestionMatchingDTO {
+        private Long id;
+        private String answer;
+    }
+
 }
