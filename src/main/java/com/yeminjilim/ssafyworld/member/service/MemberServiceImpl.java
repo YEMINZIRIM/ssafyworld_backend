@@ -238,4 +238,13 @@ public class MemberServiceImpl implements MemberService {
                 .first()
                 .log();
     }
+
+    @Override
+    public Mono<Boolean> match(String sub, Long questionId, String answer) {
+        return findBySub(sub)
+                .switchIfEmpty(Mono.error(new CustomMemberException(MemberErrorCode.MEMBER_NOT_FOUND)))
+                .map(Member::getMemberInfo)
+                .map(memberInfo -> memberInfo.getQuestionId().equals(questionId)
+                        && answer.equals(memberInfo.getAnswer()));
+    }
 }

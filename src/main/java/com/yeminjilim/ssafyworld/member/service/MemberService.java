@@ -23,5 +23,6 @@ public interface MemberService {
 
     Mono<ResponseEntity<?>> delete(RequestQuestionDTO requestQuestionDTO, String sub);
     Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name);
+    Mono<Boolean> match(String sub, Long questionId, String answer);
 
 }
