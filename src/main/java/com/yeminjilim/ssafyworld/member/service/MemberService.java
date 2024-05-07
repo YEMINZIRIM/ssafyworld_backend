@@ -2,6 +2,7 @@ package com.yeminjilim.ssafyworld.member.service;
 
 import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.dto.RequestQuestionDTO;
 import com.yeminjilim.ssafyworld.member.dto.UpdateMemberDto;
 import com.yeminjilim.ssafyworld.member.entity.Member;
 import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
@@ -20,7 +21,7 @@ public interface MemberService {
     Mono<MemberInfo> save(MemberDTO memberDTO);
     Mono<ResponseEntity<?>> update(UpdateMemberDto memberDTO, String sub);
 
-    Mono<Void> delete(Long id);
+    Mono<ResponseEntity<?>> delete(RequestQuestionDTO requestQuestionDTO, String sub);
     Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name);
 
 }

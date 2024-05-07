@@ -2,6 +2,7 @@ package com.yeminjilim.ssafyworld.member.service;
 
 import com.yeminjilim.ssafyworld.member.dto.GroupInfoDTO;
 import com.yeminjilim.ssafyworld.member.dto.MemberDTO;
+import com.yeminjilim.ssafyworld.member.dto.RequestQuestionDTO;
 import com.yeminjilim.ssafyworld.member.dto.UpdateMemberDto;
 import com.yeminjilim.ssafyworld.member.entity.GroupInfo;
 import com.yeminjilim.ssafyworld.member.entity.Member;
@@ -176,24 +177,37 @@ public class MemberServiceImpl implements MemberService {
                 });
     }
 
+    @Override
+    public Mono<ResponseEntity<?>> delete(RequestQuestionDTO request, String sub) {
+        return findBySub(sub)
+                .flatMap(member -> {
+                    if (member == null) {
+                        return Mono.error(new CustomMemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+                    }
+                    if(!verify(request, member.getMemberInfo())) {
+                        return Mono.error(new CustomMemberException(MemberErrorCode.INVALID_QUESTION_ANSWER));
+                    }
+                    R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+                    return template.getDatabaseClient()
+                            .sql("DELETE FROM member where id = :id")
+                            .bind("id", member.getMemberInfo().getMemberId())
+                            .then()
+                            .map(ResponseEntity::ok);
+                });
+    }
+
     //질문 && 답변
     private boolean verify(UpdateMemberDto request, MemberInfo memberInfo) {
         return request.getQuestionId().equals(memberInfo.getQuestionId()) &&
                 request.getAnswer().equals(memberInfo.getAnswer());
     }
 
-    @Override
-    public Mono<Void> delete(Long id) {
-
-        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
-
-        return template.getDatabaseClient()
-                .sql("DELETE FROM member where id = :id")
-                .bind("id", id)
-                .then()
-                .doOnSuccess(result -> log.info("{}", id))
-                .doOnError(error -> log.info("{}", id));
+    private boolean verify(RequestQuestionDTO request, MemberInfo memberInfo) {
+        return request.getQuestionId().equals(memberInfo.getQuestionId()) &&
+                request.getAnswer().equals(memberInfo.getAnswer());
     }
+
 
     @Override
     public Mono<Boolean> existByOrdinalAndRegionAndBan(GroupInfoDTO groupInfoDTO, String name) {

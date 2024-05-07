@@ -43,7 +43,6 @@ public class MemberController {
     public Mono<ResponseEntity<?>> update(@RequestBody UpdateMemberDto request, ServerHttpRequest serverHttpRequest) {
 
             Authentication authentication = jwtProvider.getToken(serverHttpRequest);
-
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String sub = userDetails.getUsername();
 
@@ -53,28 +52,12 @@ public class MemberController {
 
     @DeleteMapping("/member")
     public Mono<ResponseEntity<?>> delete(@RequestBody RequestQuestionDTO request, ServerHttpRequest serverHttpRequest) {
-        try {
+
             Authentication authentication = jwtProvider.getToken(serverHttpRequest);
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String sub = userDetails.getUsername();
 
-            return memberService.findBySub(sub)
-                    .flatMap(member -> {
-                        if (member != null) {
-                            if (request.getQuestionId().equals(member.getMemberInfo().getQuestionId()) &&
-                                    request.getAnswer().equals(member.getMemberInfo().getAnswer())) {
-                                return memberService.delete(member.getMemberInfo().getMemberId())
-                                        .then(Mono.just(ResponseEntity.ok().build()));
-                            } else {
-                                return Mono.error(new CustomMemberException(MemberErrorCode.INVALID_QUESTION_ANSWER));
-                            }
-                        } else {
-                            return Mono.error(new CustomMemberException(MemberErrorCode.MEMBER_NOT_DELETE));
-                        }
-                    });
-        } catch (Exception e) {
-            return Mono.just(ResponseEntity.badRequest().body("JWT 헤더 인증 과정 중 에러발생 : " + e.getMessage()));
-        }
+            return memberService.delete(request, sub);
     }
 
 
