@@ -209,4 +209,14 @@ public class MemberServiceImpl implements MemberService {
                 .map(memberInfo -> memberInfo.getQuestionId().equals(questionId)
                         && answer.equals(memberInfo.getAnswer()));
     }
+
+    @Override
+    public Mono<Void> updateName(Long id, String name) {
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        return template.update(MemberInfo.class)
+                .matching(query(where("id").is(id)))
+                .apply(Update.update("name", name))
+                .then(Mono.empty());
+    }
 }

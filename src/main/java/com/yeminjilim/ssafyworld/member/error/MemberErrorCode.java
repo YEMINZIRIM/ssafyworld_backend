@@ -4,7 +4,8 @@ import org.springframework.http.HttpStatus;
 
 public enum MemberErrorCode {
 
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"MEMBER-001","MEMBER를 찾을 수 없습니다.")
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"MEMBER-001","MEMBER를 찾을 수 없습니다."),
+    WRONG_ANSWER(HttpStatus.BAD_REQUEST, "MEMBER-002", "질문에 대한 답이 잘못되었습니다.")
     ;
 
     MemberErrorCode(HttpStatus status,String code, String message) {

@@ -50,6 +50,26 @@ public class MemberController {
                 .map(ResponseEntity::ok);
     }
 
+    @PutMapping
+    public Mono<ResponseEntity<Void>> updateName(@RequestBody MemberDTO request, ServerHttpRequest serverHttpRequest) {
+
+        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
+        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
+
+        String sub = userDetails.getUsername();
+        Long questionId = request.getQuestionId();
+        String answer = request.getAnswer().trim();
+        String name = request.getName();
+
+        return memberService.match(sub,questionId,answer)
+                .flatMap(isMatch -> {
+                    if(isMatch) {
+                        return memberService.updateName(Long.parseLong(sub),name);
+                    }
+                    return Mono.error(new CustomMemberException(MemberErrorCode.WRONG_ANSWER));
+                }).map(ResponseEntity::ok);
+    }
+
 
     @PostMapping("/login")
     public Mono<ResponseEntity<String>> login(@RequestBody LoginRequestDto loginRequestDto) {
