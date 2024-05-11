@@ -93,10 +93,10 @@ public class LetterServiceImpl implements LetterService {
     }
 
     @Override
-    public Mono<Void> deleteLetter(Long letterId, Member member) {
+    public Mono<Void> deleteLetter(Long letterId, Long userId) {
         return letterRepository.findById(letterId)
                 .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_FOUND))) //letter를 찾을 수 없음
-                .filter((letter) -> letter.getFromUser().equals(member.getMemberInfo().getMemberId()))
+                .filter((letter) -> letter.getFromUser().equals(userId))
                 .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.ACCESS_DENIED))) //권한이 없는 사용자
                 .flatMap(letterRepository::delete);
     }
