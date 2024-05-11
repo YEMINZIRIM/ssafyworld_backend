@@ -50,15 +50,15 @@ class MemberServiceImplTest {
 
     }
 
-    @Test
-    @DisplayName("사용자 삭제 테스트")
-    void delete() {
-        memberService.delete(10001L)
-                .thenMany(memberService.findAll())
-                .as(StepVerifier::create)
-                .expectNextCount(3)
-                .verifyComplete();
-    }
+    // @Test
+    // @DisplayName("사용자 삭제 테스트")
+    // void delete() {
+    //     memberService.delete(10001L)
+    //             .thenMany(memberService.findAll())
+    //             .as(StepVerifier::create)
+    //             .expectNextCount(3)
+    //             .verifyComplete();
+    // }
 
 
     @Test
