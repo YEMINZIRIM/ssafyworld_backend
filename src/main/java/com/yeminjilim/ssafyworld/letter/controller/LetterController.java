@@ -6,7 +6,6 @@ import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.ReceivedLetterResponse;
 import com.yeminjilim.ssafyworld.letter.dto.LetterDTO.SentLetterResponse;
 import com.yeminjilim.ssafyworld.letter.service.LetterService;
 import com.yeminjilim.ssafyworld.member.entity.Member;
-import com.yeminjilim.ssafyworld.member.entity.MemberInfo;
 import com.yeminjilim.ssafyworld.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,46 +29,39 @@ public class LetterController {
 
     @PostMapping
     public Mono<ResponseEntity<LetterDTO.CreateResponse>> createLetter(@RequestBody Mono<LetterDTO.CreateRequest> request, ServerHttpRequest serverHttpRequest) {
-        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
-
-        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
-        String sub = userDetails.getUsername();
-
-        return memberService.findBySub(sub)
+        return getUser(serverHttpRequest)
                 .flatMap((r) ->
                     letterService.createLetter(r.getMemberInfo().getMemberId(), request)
                 ).map(ResponseEntity::ok);
     }
 
     @GetMapping("/{letterId}")
-    public Mono<ResponseEntity<LetterDTO.ReceivedLetterResponse>> getLetterDetail(@PathVariable Long letterId) {
-        //권한 없음 추가
-        return letterService.findByLetterId(letterId)
+    public Mono<ResponseEntity<LetterDTO.ReceivedLetterResponse>> getLetterDetail(@PathVariable Long letterId, ServerHttpRequest serverHttpRequest) {
+        return getUser(serverHttpRequest)
+                .flatMap((member) ->
+                        letterService.findByLetterId(member.getMemberInfo().getMemberId(), letterId)
+                )
                 .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build())
-                .onErrorResume(Exception.class,
-                        ex -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .build())); // TODO : custom Error 로 변경
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/receive/{userId}")  // TODO : 사용자 정보(UserId) Header 에서 받아오기
-    public Mono<ResponseEntity<Flux<LetterDTO.ReceivedLetterResponse>>> getAllReceivedLetters(@PathVariable Long userId) {
-        Flux<LetterDTO.ReceivedLetterResponse> letters = letterService.findAllReceivedLetters(userId);
+    @GetMapping("/receive")
+    public Mono<ResponseEntity<Flux<LetterDTO.ReceivedLetterResponse>>> getAllReceivedLetters(ServerHttpRequest serverHttpRequest) {
+        Flux<LetterDTO.ReceivedLetterResponse> letters = getUser(serverHttpRequest)
+                .flux()
+                .flatMap((member) -> letterService.findAllReceivedLetters(member.getMemberInfo().getMemberId()));
+
         return Mono.just(ResponseEntity.ok().body(letters))
                 .onErrorResume(Exception.class,
                         ex -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .build())); // TODO : customError로 변경
     }
 
-    @GetMapping("/send")  // TODO : 사용자 정보(UserId) Header 에서 받아오기
+    @GetMapping("/send")
     public Mono<ResponseEntity<Flux<LetterDTO.SentLetterResponse>>> getAllSentLetters(ServerHttpRequest serverHttpRequest) {
-        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
-
-        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
-        String sub = userDetails.getUsername();
-
-        Flux<SentLetterResponse> sentLetterResponseFlux = memberService.findBySub(sub)
-                .flux().flatMap(r -> letterService.findAllSentLetters(r.getMemberInfo().getMemberId()));
+        Flux<SentLetterResponse> sentLetterResponseFlux = getUser(serverHttpRequest)
+                .flux()
+                .flatMap(r -> letterService.findAllSentLetters(r.getMemberInfo().getMemberId()));
 
         return Mono.just(ResponseEntity.ok().body(sentLetterResponseFlux))
                 .onErrorResume(Exception.class,
@@ -78,33 +70,37 @@ public class LetterController {
     }
 
     @DeleteMapping("/{letterId}") //보낸 사람만 삭제가능
-    public Mono<Void> deleteLetter(@PathVariable Long letterId) {
-        //TODO 로그인 구현 시 삭제
-        Long tmpFromUserId = 1L;
-        MemberInfo tmpMemberInfo = MemberInfo.builder().memberId(tmpFromUserId).build();
-        Member member = new Member(tmpMemberInfo, null);
-
-        return letterService.deleteLetter(letterId, member);
+    public Mono<Void> deleteLetter(@PathVariable Long letterId, ServerHttpRequest serverHttpRequest) {
+        return getUser(serverHttpRequest)
+                .flatMap((member) -> letterService.deleteLetter(letterId, member.getMemberInfo().getMemberId()));
     }
 
     //나에게 온 편지 숨기기
     @PostMapping("/hidden")
-    public Mono<ResponseEntity> hideLetter(@RequestBody Mono<LetterDTO.HideRequest> request) {
-        //TODO 로그인 구현 시 삭제
-        Long tmpFromUserId = 2L;
-        MemberInfo tmpMemberInfo = MemberInfo.builder().memberId(tmpFromUserId).build();
-        Member member = new Member(tmpMemberInfo, null);
-
-        return letterService.hideLetter(request, member)
+    public Mono<ResponseEntity> hideLetter(@RequestBody Mono<LetterDTO.HideRequest> request, ServerHttpRequest serverHttpRequest) {
+        return getUser(serverHttpRequest)
+                .flatMap((member) -> letterService.hideLetter(request, member))
                 .map((letter) -> LetterDTO.HideRequest.builder().letterId(letter.getId()).hidden(letter.getHidden()).build())
                 .map(ResponseEntity::ok);
     }
 
-    @GetMapping("/hidden")  // TODO : 사용자 정보(UserId) Header 에서 받아오기
-    public Mono<ResponseEntity<Flux<ReceivedLetterResponse>>> getHideLetter() {
-        //TODO 로그인 구현 시 삭제
-        Long tmpFromUserId = 2L;
+    @GetMapping("/hidden")
+    public Mono<ResponseEntity<Flux<ReceivedLetterResponse>>> getHideLetter(ServerHttpRequest serverHttpRequest) {
+        return getUser(serverHttpRequest)
+                .map((member) -> letterService.getHideLetter(member.getMemberInfo().getMemberId()))
+                .map(ResponseEntity::ok);
+    }
 
-        return Mono.just(ResponseEntity.ok().body(letterService.getHideLetter(tmpFromUserId)));
+    private Mono<Member> getUser(ServerHttpRequest serverHttpRequest) {
+        return memberService.findBySub(getUserSub(serverHttpRequest));
+    }
+
+    private String getUserSub(ServerHttpRequest serverHttpRequest) {
+        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
+
+        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
+        String sub = userDetails.getUsername();
+
+        return sub;
     }
 }
