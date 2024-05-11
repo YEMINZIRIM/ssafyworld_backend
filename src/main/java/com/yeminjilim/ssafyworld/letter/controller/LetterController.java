@@ -30,22 +30,19 @@ public class LetterController {
 
     @PostMapping
     public Mono<ResponseEntity<LetterDTO.CreateResponse>> createLetter(@RequestBody Mono<LetterDTO.CreateRequest> request, ServerHttpRequest serverHttpRequest) {
-        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
-
-        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
-        String sub = userDetails.getUsername();
-
-        return memberService.findBySub(sub)
+        return getUser(serverHttpRequest)
                 .flatMap((r) ->
                     letterService.createLetter(r.getMemberInfo().getMemberId(), request)
                 ).map(ResponseEntity::ok);
     }
 
     @GetMapping("/{letterId}")
-    public Mono<ResponseEntity<LetterDTO.ReceivedLetterResponse>> getLetterDetail(@PathVariable Long letterId) {
+    public Mono<ResponseEntity<LetterDTO.ReceivedLetterResponse>> getLetterDetail(@PathVariable Long letterId, ServerHttpRequest serverHttpRequest) {
         //권한 없음 추가
-        return letterService.findByLetterId(letterId)
-                .map(ResponseEntity::ok)
+        return getUser(serverHttpRequest)
+                .flatMap((member) ->
+                        letterService.findByLetterId(member.getMemberInfo().getMemberId(), letterId)
+                ).map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build())
                 .onErrorResume(Exception.class,
                         ex -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -106,5 +103,18 @@ public class LetterController {
         Long tmpFromUserId = 2L;
 
         return Mono.just(ResponseEntity.ok().body(letterService.getHideLetter(tmpFromUserId)));
+    }
+
+    private Mono<Member> getUser(ServerHttpRequest serverHttpRequest) {
+        return memberService.findBySub(getUserSub(serverHttpRequest));
+    }
+
+    private String getUserSub(ServerHttpRequest serverHttpRequest) {
+        Authentication authentication = jwtProvider.getToken(serverHttpRequest);
+
+        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
+        String sub = userDetails.getUsername();
+
+        return sub;
     }
 }

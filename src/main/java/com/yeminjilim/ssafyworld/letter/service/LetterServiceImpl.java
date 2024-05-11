@@ -10,22 +10,36 @@ import com.yeminjilim.ssafyworld.letter.error.CustomLetterException;
 import com.yeminjilim.ssafyworld.letter.error.LetterErrorCode;
 import com.yeminjilim.ssafyworld.letter.repository.LetterRepository;
 import com.yeminjilim.ssafyworld.member.entity.Member;
-
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class LetterServiceImpl implements LetterService {
     private final LetterRepository letterRepository;
     private final R2dbcEntityTemplate r2dbcEntityTemplate;
+    private LocalDateTime canReadTime;
+
+    @Autowired
+    public LetterServiceImpl(
+            LetterRepository letterRepository,
+            R2dbcEntityTemplate r2dbcEntityTemplate,
+            @Value("${read.time}") String canReadTimeStr
+    ) {
+        this.letterRepository = letterRepository;
+        this.r2dbcEntityTemplate = r2dbcEntityTemplate;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        this.canReadTime = LocalDateTime.parse(canReadTimeStr, formatter);
+    }
 
     @Override
     public Mono<CreateResponse> createLetter(Long userId, Mono<CreateRequest> request) throws RuntimeException {
@@ -38,13 +52,18 @@ public class LetterServiceImpl implements LetterService {
 
     @Override
     public Flux<LetterDTO.ReceivedLetterResponse> findAllReceivedLetters(Long userId) {
-        return letterRepository.findAllByToUser(userId)
+        return Flux.just("")
+                .filter((tmp) -> canReadLetter()) //시간이 되어야 확인가능
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_TIME_YET)))
+                .flatMap((tmp) -> letterRepository.findAllByToUser(userId))
                 .map(ReceivedLetterResponse::of);
     }
 
     @Override
-    public Mono<LetterDTO.ReceivedLetterResponse> findByLetterId(Long letterId) {
+    public Mono<LetterDTO.ReceivedLetterResponse> findByLetterId(Long userId, Long letterId) {
         return letterRepository.findById(letterId)
+                .filter((letter) -> letter.getFromUser() != userId && canReadLetter()) //시간이 되어야 확인가능
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_TIME_YET)))
                 .map(ReceivedLetterResponse::of);
     }
 
@@ -76,8 +95,8 @@ public class LetterServiceImpl implements LetterService {
         return letterRepository.findById(letterId)
                 .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_FOUND))) //letter를 찾을 수 없음
                 .filter((letter) -> letter.getFromUser().equals(member.getMemberInfo().getMemberId()))
-                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.ACCESS_DENIED)))
-                .flatMap(letterRepository::delete); //권한이 없는 사용자
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.ACCESS_DENIED))) //권한이 없는 사용자
+                .flatMap(letterRepository::delete);
     }
 
     @Override
@@ -99,7 +118,10 @@ public class LetterServiceImpl implements LetterService {
 
     @Override
     public Flux<ReceivedLetterResponse> getHideLetter(Long userId) {
-        return letterRepository.findAllByToUserAndHiddenIsTrue(userId)
+        return Flux.just("")
+                .filter((tmp) -> canReadLetter()) //시간이 되어야 확인가능
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_TIME_YET)))
+                .flatMap((tmp) -> letterRepository.findAllByToUserAndHiddenIsTrue(userId)) //시간이 되어야 확인가능
                 .map(ReceivedLetterResponse::of);
     }
 
@@ -125,6 +147,14 @@ public class LetterServiceImpl implements LetterService {
 
     private boolean isEqualUser(Long toUserId, Long fromUserId) {
         if (toUserId.equals(fromUserId))
+            return true;
+
+        return false;
+    }
+
+    //letter 오픈 시간 확인
+    private boolean canReadLetter() {
+        if (LocalDateTime.now().isAfter(canReadTime))
             return true;
 
         return false;

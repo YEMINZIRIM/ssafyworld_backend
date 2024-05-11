@@ -15,7 +15,7 @@ public interface LetterService {
 
     Flux<ReceivedLetterResponse> findAllReceivedLetters(Long userId);
 
-    Mono<ReceivedLetterResponse> findByLetterId(Long letterId);
+    Mono<ReceivedLetterResponse> findByLetterId(Long userId, Long letterId);
 
     Flux<LetterDTO.SentLetterResponse> findAllSentLetters(Long userId);
 
