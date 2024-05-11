@@ -38,15 +38,12 @@ public class LetterController {
 
     @GetMapping("/{letterId}")
     public Mono<ResponseEntity<LetterDTO.ReceivedLetterResponse>> getLetterDetail(@PathVariable Long letterId, ServerHttpRequest serverHttpRequest) {
-        //권한 없음 추가
         return getUser(serverHttpRequest)
                 .flatMap((member) ->
                         letterService.findByLetterId(member.getMemberInfo().getMemberId(), letterId)
-                ).map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build())
-                .onErrorResume(Exception.class,
-                        ex -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .build())); // TODO : custom Error 로 변경
+                )
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/receive/{userId}")  // TODO : 사용자 정보(UserId) Header 에서 받아오기

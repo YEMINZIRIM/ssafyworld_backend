@@ -62,7 +62,9 @@ public class LetterServiceImpl implements LetterService {
     @Override
     public Mono<LetterDTO.ReceivedLetterResponse> findByLetterId(Long userId, Long letterId) {
         return letterRepository.findById(letterId)
-                .filter((letter) -> letter.getFromUser() != userId && canReadLetter()) //시간이 되어야 확인가능
+                .filter((letter) -> letter.getFromUser() == userId || letter.getToUser() == userId) //읽을 권한이 없는 사용자
+                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.ACCESS_DENIED)))
+                .filter((letter) -> letter.getFromUser() != userId && canReadLetter()) //시간이 되어야 확인가능, 내가보낸 편지는 읽을 수 있음
                 .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_TIME_YET)))
                 .map(ReceivedLetterResponse::of);
     }
