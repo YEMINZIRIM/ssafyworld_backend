@@ -45,8 +45,6 @@ public class MemberDTO {
                 .groupInfoId(member.getGroupInfoId())
                 .name(member.getName())
                 .serialNumber(member.getSerialNumber())
-                .questionId(member.getQuestionId())
-                .answer(member.getAnswer())
                 .build();
     }
 

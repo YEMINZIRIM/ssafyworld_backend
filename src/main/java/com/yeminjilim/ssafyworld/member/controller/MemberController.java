@@ -16,6 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/member")
@@ -30,6 +32,14 @@ public class MemberController {
         this.memberService = memberService;
     }
 
+    @GetMapping
+    public Mono<ResponseEntity<List<MemberDTO>>> memberListInGroup(Long groupInfoId) {
+        return memberService.findByGroupInfoId(groupInfoId)
+                .map(MemberDTO::toDTO)
+                .collectList()
+                .map(ResponseEntity::ok);
+    }
+
     //회원가입
     @PostMapping("/register")
     public Mono<ResponseEntity<MemberDTO>> join(@RequestBody MemberDTO request) {
@@ -39,7 +49,7 @@ public class MemberController {
                 .map(ResponseEntity::ok);
     }
 
-    @PutMapping("/member")
+    @PutMapping
     public Mono<ResponseEntity<?>> update(@RequestBody UpdateMemberDto request, ServerHttpRequest serverHttpRequest) {
 
             Authentication authentication = jwtProvider.getToken(serverHttpRequest);
@@ -50,7 +60,7 @@ public class MemberController {
     }
 
 
-    @DeleteMapping("/member")
+    @DeleteMapping
     public Mono<ResponseEntity<?>> delete(@RequestBody RequestQuestionDTO request, ServerHttpRequest serverHttpRequest) {
 
             Authentication authentication = jwtProvider.getToken(serverHttpRequest);
@@ -60,7 +70,7 @@ public class MemberController {
             return memberService.delete(request, sub);
     }
 
-    @PutMapping
+    @PutMapping("/name")
     public Mono<ResponseEntity<Void>> updateName(@RequestBody MemberDTO request, ServerHttpRequest serverHttpRequest) {
 
         Authentication authentication = jwtProvider.getToken(serverHttpRequest);
@@ -92,14 +102,14 @@ public class MemberController {
     }
 
     @PostMapping("/logout")
-    public Mono<ResponseEntity<?>> logout(@RequestHeader("token") String token) {
+    public Mono<ResponseEntity<?>> logout() {
         // 토큰을 검증하고 유효한지 확인하는 코드
 
         return Mono.just(ResponseEntity.ok().body("Logged out successfully"));
     }
 
     //회원 정보 가져오기ㅣ
-    @GetMapping("/member/info")
+    @GetMapping("/info")
     public Mono<ResponseEntity<?>> getMemberInfo(ServerHttpRequest request) {
         try {
             Authentication authentication = jwtProvider.getToken(request);
