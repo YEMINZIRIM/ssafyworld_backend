@@ -11,6 +11,9 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @RequiredArgsConstructor
 @EnableWebFluxSecurity
@@ -21,13 +24,31 @@ public class ReactiveSecurityConfig {
     private final ServerAuthenticationEntryPoint authenticationEntryPoint;
     private final ServerAccessDeniedHandler serverAccessDeniedHandler;
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        //TODO 프론트 주소에 맞게 수정
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedOrigin("http://localhost");
+        configuration.addAllowedOrigin("http://localhost/");
+        configuration.addAllowedOrigin("http://localhost:8080");
+        configuration.addAllowedOrigin("http://localhost:8080/");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public SecurityWebFilterChain configure(ServerHttpSecurity http) {
 
         http.formLogin().disable()
                 .httpBasic().disable()
-                .cors().disable()
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
                 .csrf().disable()
 //                .oauth2Login((oAuth2LoginSpec -> {
 //                    // TODO : 성공, 실패 처리 이제 필요 없지 않나?
