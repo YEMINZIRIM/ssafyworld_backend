@@ -53,10 +53,13 @@ public class LetterServiceImpl implements LetterService {
     @Override
     public Flux<LetterDTO.ReceivedLetterResponse> findAllReceivedLetters(Long userId) {
         return Flux.just("")
-                .filter((tmp) -> canReadLetter()) //시간이 되어야 확인가능
-                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_TIME_YET)))
                 .flatMap((tmp) -> letterRepository.findAllByToUser(userId))
-                .map(ReceivedLetterResponse::of);
+                .map(value -> {
+                    if (canReadLetter())
+                        return LetterDTO.ReceivedLetterResponse.of(value, true);
+                    else
+                        return LetterDTO.ReceivedLetterResponse.of(value, false);
+                });
     }
 
     @Override
@@ -64,9 +67,12 @@ public class LetterServiceImpl implements LetterService {
         return letterRepository.findById(letterId)
                 .filter((letter) -> letter.getFromUser() == userId || letter.getToUser() == userId) //읽을 권한이 없는 사용자
                 .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.ACCESS_DENIED)))
-                .filter((letter) -> letter.getFromUser() != userId && canReadLetter()) //시간이 되어야 확인가능, 내가보낸 편지는 읽을 수 있음
-                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_TIME_YET)))
-                .map(ReceivedLetterResponse::of);
+                .map(letter -> {
+                    if (letter.getFromUser() == userId || canReadLetter())
+                        return LetterDTO.ReceivedLetterResponse.of(letter, true);
+                    else
+                        return LetterDTO.ReceivedLetterResponse.of(letter, false);
+                });
     }
 
     @Override
@@ -121,10 +127,13 @@ public class LetterServiceImpl implements LetterService {
     @Override
     public Flux<ReceivedLetterResponse> getHideLetter(Long userId) {
         return Flux.just("")
-                .filter((tmp) -> canReadLetter()) //시간이 되어야 확인가능
-                .switchIfEmpty(Mono.error(new CustomLetterException(LetterErrorCode.NOT_TIME_YET)))
                 .flatMap((tmp) -> letterRepository.findAllByToUserAndHiddenIsTrue(userId)) //시간이 되어야 확인가능
-                .map(ReceivedLetterResponse::of);
+                .map(value -> {
+                    if (canReadLetter())
+                        return LetterDTO.ReceivedLetterResponse.of(value, true);
+                    else
+                        return LetterDTO.ReceivedLetterResponse.of(value, false);
+                });
     }
 
     private boolean validate(Long userId, CreateRequest request) {
