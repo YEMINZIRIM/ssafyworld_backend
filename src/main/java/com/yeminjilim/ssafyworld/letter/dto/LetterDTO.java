@@ -60,8 +60,12 @@ public class LetterDTO {
         private Boolean hidden;
         private LocalDateTime createdAt;
 
-        public static ReceivedLetterResponse of(Letter letter) {
-            return new ReceivedLetterResponse(letter.getId(), letter.getTitle(), letter.getContent(), letter.getHidden(), letter.getCreatedAt());
+        public static ReceivedLetterResponse of(Letter letter, boolean show) {
+            //TODO 숨기기는 기간이 안됐을 때 보여줄건가??
+            if (show)
+                return new ReceivedLetterResponse(letter.getId(), letter.getTitle(), letter.getContent(), letter.getHidden(), letter.getCreatedAt());
+            else
+                return new ReceivedLetterResponse(letter.getId(), "숨겨진 제목", "숨겨진 콘텐츠", letter.getHidden(), letter.getCreatedAt());
         }
     }
 
