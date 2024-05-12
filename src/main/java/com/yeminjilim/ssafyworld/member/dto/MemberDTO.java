@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+import java.util.UUID;
+
 @Builder(access = AccessLevel.PRIVATE)
 @Data
 @NoArgsConstructor
@@ -31,7 +33,7 @@ public class MemberDTO {
                 .provider(provider)
                 .groupInfoId(groupInfoId)
                 .name(name)
-                .serialNumber(serialNumber)
+                .serialNumber(UUID.randomUUID().toString().substring(0,8))
                 .questionId(questionId)
                 .answer(answer)
                 .build();
