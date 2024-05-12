@@ -8,6 +8,6 @@ import reactor.core.publisher.Flux;
 
 public interface ChatRepository extends ReactiveCrudRepository<Chat, Long> {
 
-    Flux<Chat> findByGroupInfoIdOrderByCreatedAtDesc(String groupInfoId, Pageable pageable);
+    Flux<Chat> findByGroupInfoIdOrderByCreatedAtAsc(String groupInfoId, Pageable pageable);
 
 }
