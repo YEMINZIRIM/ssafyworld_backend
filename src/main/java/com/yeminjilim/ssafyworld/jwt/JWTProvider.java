@@ -101,19 +101,30 @@ public class JWTProvider {
         return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
     }
 
+    public Map<String, Object> getClaims(String token) {
+        JWT jwt = new JWT(token);
+        return jwt.getClaims(token);
+    }
+
     public String makeToken(Member member) {
 
         Instant instant = Instant.now().truncatedTo(ChronoUnit.SECONDS);
         Instant expiredDate = instant.plus(30, ChronoUnit.MINUTES);
 
+        HashMap<String,Object> claims = new HashMap<>();
+        claims.put("name", member.getMemberInfo().getName());
+
         return Jwts.builder()
                 .setHeaderParam("type", "accessToken")
                 .setHeaderParam("alg", "HS256")
                 .setSubject(member.getMemberInfo().getMemberId().toString())
+                .addClaims(claims)
                 .setIssuedAt(Date.from(instant))
                 .setExpiration(Date.from(expiredDate))
                 .claim("roles","ROLE_USER")
                 .signWith(SignatureAlgorithm.HS256, secret) // TODO : 수정을 해야될것 같다.
                 .compact();
     }
+
+
 }
