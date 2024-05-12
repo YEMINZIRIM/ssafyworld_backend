@@ -17,6 +17,6 @@ public class ChatController {
 
     @GetMapping("/chat/{groupInfoId}/messages")
     public Flux<Chat> getChatMessages(@PathVariable String groupInfoId) {
-        return chatRepository.findByGroupInfoIdOrderByCreatedAtDesc(groupInfoId, PageRequest.of(0, 200));
+        return chatRepository.findByGroupInfoIdOrderByCreatedAtAsc(groupInfoId, PageRequest.of(0, 200));
     }
 }

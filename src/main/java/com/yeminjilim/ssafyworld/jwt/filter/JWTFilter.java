@@ -36,7 +36,8 @@ public class JWTFilter implements WebFilter {
             "/configuration/ui",
             "/configuration/security",
             "/swagger-ui.html",
-            "/webjars/**"
+            "/webjars/**",
+            "/chat*"
     );
 
     @Override

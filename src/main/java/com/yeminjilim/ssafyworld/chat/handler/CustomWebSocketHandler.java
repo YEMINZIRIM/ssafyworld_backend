@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.net.URI;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 
@@ -42,7 +43,6 @@ public class CustomWebSocketHandler implements WebSocketHandler {
                         String content = json.getString("content");
                         String realChatRoom = chatRoom.substring(4);
 
-
                         ChatDto chatDto = new ChatDto();
                         chatDto.setGroupInfoId(Long.valueOf(realChatRoom));
                         chatDto.setSenderId(senderId);
@@ -57,7 +57,7 @@ public class CustomWebSocketHandler implements WebSocketHandler {
                 })
                 .filter(chatDto -> chatDto != null) // Filter out invalid messages
                 .flatMap(chatDto -> chatRepository.save(chatDto.toEntity()))
-                .map(savedMessage -> savedMessage.getSenderName() + ": " + savedMessage.getContent());
+                .map(savedMessage -> savedMessage.getSenderName() + ":" + savedMessage.getContent() + ":" + savedMessage.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")));
 
 
         // 해당 채팅방의 Sink로 메시지 전송

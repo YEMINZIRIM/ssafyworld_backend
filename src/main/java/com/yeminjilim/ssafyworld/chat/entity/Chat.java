@@ -20,20 +20,21 @@ import java.time.LocalDateTime;
 public class Chat {
 
     @Id
-    @Column("chat_id")
+    @Column("id")
     private Long chatId;
 
-    @Column("sender_id")
+    @Column("memberId")
     private Long senderId;
 
-    @Column("sender_name")
+    @Column("sender")
     private String senderName;
 
     private String content;
 
-    @Column("group_info")
+    @Column("groupInfoId")
     private Long groupInfoId;
 
     @CreatedDate
+    @Column("createdAt")
     private LocalDateTime createdAt;
 }
