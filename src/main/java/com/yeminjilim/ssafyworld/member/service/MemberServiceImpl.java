@@ -31,11 +31,6 @@ public class MemberServiceImpl implements MemberService {
 
     private final ConnectionFactory connectionFactory;
 
-    @Autowired
-    private MemberInfoRepository memberInfoRepository;
-
-
-
     @Override
     public Mono<Member> findById(Long id) {
 
@@ -79,6 +74,18 @@ public class MemberServiceImpl implements MemberService {
                     return new Member(memberInfo,groupInfo);
                 })
                 .first()
+                .doOnNext(member -> log.info(member.toString()));
+    }
+
+    @Override
+    public Flux<MemberInfo> findByGroupInfoId(Long groupInfoId) {
+        R2dbcEntityTemplate template = new R2dbcEntityTemplate(connectionFactory);
+
+        return template.getDatabaseClient()
+                .sql("SELECT m.* FROM member m WHERE m.groupInfoId = :groupInfoId")
+                .bind("groupInfoId",groupInfoId)
+                .map(row -> MemberInfo.mapping(row))
+                .all()
                 .doOnNext(member -> log.info(member.toString()));
     }
 
