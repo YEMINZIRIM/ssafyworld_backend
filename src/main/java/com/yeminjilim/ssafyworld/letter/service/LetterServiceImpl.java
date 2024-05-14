@@ -54,6 +54,7 @@ public class LetterServiceImpl implements LetterService {
     public Flux<LetterDTO.ReceivedLetterResponse> findAllReceivedLetters(Long userId) {
         return Flux.just("")
                 .flatMap((tmp) -> letterRepository.findAllByToUser(userId))
+                .filter(letter -> !letter.getHidden())
                 .map(value -> {
                     if (canReadLetter())
                         return LetterDTO.ReceivedLetterResponse.of(value, true);
