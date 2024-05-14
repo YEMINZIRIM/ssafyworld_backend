@@ -28,11 +28,7 @@ public class ReactiveSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         //TODO 프론트 주소에 맞게 수정
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:3000");
-        configuration.addAllowedOrigin("http://localhost");
-        configuration.addAllowedOrigin("http://localhost/");
-        configuration.addAllowedOrigin("http://localhost:8080");
-        configuration.addAllowedOrigin("http://localhost:8080/");
+        configuration.addAllowedOrigin("*");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);
