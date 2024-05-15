@@ -65,7 +65,7 @@ public class LetterDTO {
             if (show)
                 return new ReceivedLetterResponse(letter.getId(), letter.getTitle(), letter.getContent(), letter.getHidden(), letter.getCreatedAt());
             else
-                return new ReceivedLetterResponse(letter.getId(), "숨겨진 제목", "숨겨진 콘텐츠", letter.getHidden(), letter.getCreatedAt());
+                return new ReceivedLetterResponse(letter.getId(), "5월 24일에 공개됩니다!!", "5월 24일에 공개됩니다!!", letter.getHidden(), letter.getCreatedAt());
         }
     }
 

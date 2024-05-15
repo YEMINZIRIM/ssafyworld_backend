@@ -29,7 +29,6 @@ public class ChatDto {
     }
 
     public Chat toEntity() {
-        System.out.println(createdAt);
         return Chat.builder()
                 .chatId(chatId)
                 .senderId(senderId)
