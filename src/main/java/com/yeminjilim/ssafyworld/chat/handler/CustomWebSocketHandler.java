@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONWriter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -16,6 +15,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,17 +43,17 @@ public class CustomWebSocketHandler implements WebSocketHandler {
 
                         String accessToken = json.getString("accessToken");
                         String content = json.getString("content");
-                        String createdAt = json.getString("createdAt");
 
                         String realChatRoom = chatRoom.substring(4);
                         Map<String,Object> claims = jwtProvider.getClaims(accessToken);
+                        LocalDateTime createdAt = LocalDateTime.now();
 
                         return ChatDto.builder()
                                 .groupInfoId(Long.valueOf(realChatRoom))
                                 .senderId(Long.parseLong((String) claims.get("sub")))
                                 .senderName((String) claims.get("name"))
                                 .content(content)
-                                .createdAt(createdAt)
+                                .createdAt(createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                                 .build();
                     } catch (JSONException ex) {
                         ex.printStackTrace();
