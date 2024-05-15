@@ -18,6 +18,11 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Comparator;
+import java.util.List;
+
+import static com.yeminjilim.ssafyworld.letter.dto.LetterDTO.*;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -28,7 +33,7 @@ public class LetterController {
     private final JWTProvider jwtProvider;
 
     @PostMapping
-    public Mono<ResponseEntity<LetterDTO.CreateResponse>> createLetter(@RequestBody Mono<LetterDTO.CreateRequest> request, ServerHttpRequest serverHttpRequest) {
+    public Mono<ResponseEntity<CreateResponse>> createLetter(@RequestBody Mono<CreateRequest> request, ServerHttpRequest serverHttpRequest) {
         return getUser(serverHttpRequest)
                 .flatMap((r) ->
                     letterService.createLetter(r.getMemberInfo().getMemberId(), request)
@@ -36,7 +41,7 @@ public class LetterController {
     }
 
     @GetMapping("/{letterId}")
-    public Mono<ResponseEntity<LetterDTO.ReceivedLetterResponse>> getLetterDetail(@PathVariable Long letterId, ServerHttpRequest serverHttpRequest) {
+    public Mono<ResponseEntity<ReceivedLetterResponse>> getLetterDetail(@PathVariable Long letterId, ServerHttpRequest serverHttpRequest) {
         return getUser(serverHttpRequest)
                 .flatMap((member) ->
                         letterService.findByLetterId(member.getMemberInfo().getMemberId(), letterId)
@@ -46,10 +51,12 @@ public class LetterController {
     }
 
     @GetMapping("/receive")
-    public Mono<ResponseEntity<Flux<LetterDTO.ReceivedLetterResponse>>> getAllReceivedLetters(ServerHttpRequest serverHttpRequest) {
-        Flux<LetterDTO.ReceivedLetterResponse> letters = getUser(serverHttpRequest)
+    public Mono<ResponseEntity<Mono<List<ReceivedLetterResponse>>>> getAllReceivedLetters(ServerHttpRequest serverHttpRequest) {
+        Mono<List<ReceivedLetterResponse>> letters = getUser(serverHttpRequest)
                 .flux()
-                .flatMap((member) -> letterService.findAllReceivedLetters(member.getMemberInfo().getMemberId()));
+                .flatMap((member) -> letterService.findAllReceivedLetters(member.getMemberInfo().getMemberId()))
+                .collectList()
+                .doOnNext(list -> list.sort(Comparator.comparing(ReceivedLetterResponse::getCreatedAt)));
 
         return Mono.just(ResponseEntity.ok().body(letters))
                 .onErrorResume(Exception.class,
@@ -58,10 +65,12 @@ public class LetterController {
     }
 
     @GetMapping("/send")
-    public Mono<ResponseEntity<Flux<LetterDTO.SentLetterResponse>>> getAllSentLetters(ServerHttpRequest serverHttpRequest) {
-        Flux<SentLetterResponse> sentLetterResponseFlux = getUser(serverHttpRequest)
+    public Mono<ResponseEntity<Mono<List<SentLetterResponse>>>> getAllSentLetters(ServerHttpRequest serverHttpRequest) {
+        Mono<List<SentLetterResponse>> sentLetterResponseFlux = getUser(serverHttpRequest)
                 .flux()
-                .flatMap(r -> letterService.findAllSentLetters(r.getMemberInfo().getMemberId()));
+                .flatMap(r -> letterService.findAllSentLetters(r.getMemberInfo().getMemberId()))
+                .collectList()
+                .doOnNext(list -> list.sort(Comparator.comparing(SentLetterResponse::getCreatedAt)));
 
         return Mono.just(ResponseEntity.ok().body(sentLetterResponseFlux))
                 .onErrorResume(Exception.class,
@@ -77,17 +86,21 @@ public class LetterController {
 
     //나에게 온 편지 숨기기
     @PostMapping("/hidden")
-    public Mono<ResponseEntity> hideLetter(@RequestBody Mono<LetterDTO.HideRequest> request, ServerHttpRequest serverHttpRequest) {
+    public Mono<ResponseEntity> hideLetter(@RequestBody Mono<HideRequest> request, ServerHttpRequest serverHttpRequest) {
         return getUser(serverHttpRequest)
                 .flatMap((member) -> letterService.hideLetter(request, member))
-                .map((letter) -> LetterDTO.HideRequest.builder().letterId(letter.getId()).hidden(letter.getHidden()).build())
+                .map((letter) -> HideRequest.builder().letterId(letter.getId()).hidden(letter.getHidden()).build())
                 .map(ResponseEntity::ok);
     }
 
     @GetMapping("/hidden")
-    public Mono<ResponseEntity<Flux<ReceivedLetterResponse>>> getHideLetter(ServerHttpRequest serverHttpRequest) {
+    public Mono<ResponseEntity<Mono<List<ReceivedLetterResponse>>>> getHideLetter(ServerHttpRequest serverHttpRequest) {
         return getUser(serverHttpRequest)
-                .map((member) -> letterService.getHideLetter(member.getMemberInfo().getMemberId()))
+                .map((member) -> {
+                    Flux<ReceivedLetterResponse> hideLetter = letterService.getHideLetter(member.getMemberInfo().getMemberId());
+                    return hideLetter.collectList()
+                            .doOnNext(list -> list.sort(Comparator.comparing(ReceivedLetterResponse::getCreatedAt)));
+                })
                 .map(ResponseEntity::ok);
     }
 

@@ -25,7 +25,8 @@ public class ChatController {
         return chatRepository.findByGroupInfoIdOrderByCreatedAtDesc(groupInfoId)
                 .map(ChatDto::of)
                 .collectList()
-                .doOnNext(list -> list.sort(Collections.reverseOrder()));
+//                .doOnNext(list -> list.sort(Collections.reverseOrder()))
+                ;
 
     }
 }

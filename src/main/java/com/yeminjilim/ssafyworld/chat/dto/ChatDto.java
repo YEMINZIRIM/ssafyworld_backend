@@ -6,10 +6,11 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 
 @Builder
 @Data
-public class ChatDto {
+public class ChatDto implements Comparable<ChatDto>{
 
     private Long chatId;
     private Long senderId;
@@ -37,5 +38,10 @@ public class ChatDto {
                 .groupInfoId(groupInfoId)
                 .createdAt(LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();
+    }
+
+    @Override
+    public int compareTo(ChatDto o) {
+        return createdAt.compareTo(o.createdAt);
     }
 }
