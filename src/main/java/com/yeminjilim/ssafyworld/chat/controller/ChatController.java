@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.Collections;
+import java.util.List;
 
 @RestController
 public class ChatController {
@@ -17,8 +21,11 @@ public class ChatController {
     private ChatRepository chatRepository;
 
     @GetMapping("/chat/{groupInfoId}/messages")
-    public Flux<ChatDto> getChatMessages(@PathVariable String groupInfoId) {
-        return chatRepository.findByGroupInfoIdOrderByCreatedAtAsc(groupInfoId)
-                .map(ChatDto::of);
+    public Mono<List<ChatDto>> getChatMessages(@PathVariable String groupInfoId) {
+        return chatRepository.findByGroupInfoIdOrderByCreatedAtDesc(groupInfoId)
+                .map(ChatDto::of)
+                .collectList()
+                .doOnNext(list -> list.sort(Collections.reverseOrder()));
+
     }
 }

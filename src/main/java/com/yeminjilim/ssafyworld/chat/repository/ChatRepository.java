@@ -9,7 +9,7 @@ import reactor.core.publisher.Flux;
 
 public interface ChatRepository extends ReactiveCrudRepository<Chat, Long> {
 
-    @Query("SELECT * FROM chat WHERE chat.groupInfoId = :groupInfoId and chat.createdAt < now() ORDER BY chat.createdAt ASC LIMIT 0, 200")
-    Flux<Chat> findByGroupInfoIdOrderByCreatedAtAsc(@Param("groupInfoId") String groupInfoId);
+    @Query("SELECT * FROM chat WHERE chat.groupInfoId = :groupInfoId and chat.createdAt < now() ORDER BY chat.createdAt DESC LIMIT 0, 200")
+    Flux<Chat> findByGroupInfoIdOrderByCreatedAtDesc(@Param("groupInfoId") String groupInfoId);
 
 }
