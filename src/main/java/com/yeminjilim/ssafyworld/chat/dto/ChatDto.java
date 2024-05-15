@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 @Builder
 @Data
@@ -29,14 +30,15 @@ public class ChatDto {
     }
 
     public Chat toEntity() {
-        System.out.println(createdAt);
+        LocalDateTime localDateTime = LocalDateTime.now().plus(9, ChronoUnit.HOURS);
+
         return Chat.builder()
                 .chatId(chatId)
                 .senderId(senderId)
                 .senderName(senderName)
                 .content(content)
                 .groupInfoId(groupInfoId)
-                .createdAt(LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .createdAt(localDateTime)
                 .build();
     }
 }

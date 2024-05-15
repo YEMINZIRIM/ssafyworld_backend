@@ -42,15 +42,13 @@ public class MemberInfo {
     @Column("answer")
     private String answer;
 
-    @Builder.Default
     @Column("createdAt")
     @CreatedDate
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
-    @Builder.Default
     @Column("updatedAt")
     @LastModifiedDate
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
     public static MemberInfo mapping(Row row) {
         return builder()
