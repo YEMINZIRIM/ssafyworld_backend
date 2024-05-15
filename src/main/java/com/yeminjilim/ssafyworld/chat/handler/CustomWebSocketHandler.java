@@ -56,7 +56,6 @@ public class CustomWebSocketHandler implements WebSocketHandler {
                                 .createdAt(createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                                 .build();
                     } catch (JSONException ex) {
-                        ex.printStackTrace();
                         return null;
                     }
                 })

@@ -82,7 +82,6 @@ class MemberServiceImplTest {
                 .assertNext(saved -> {
                     assertNotNull(saved);
                     assertNotNull(saved.getMemberId());
-                    System.out.println(saved.getCreatedAt());
                     assertEquals(memberInfo.getName(), saved.getName());
                     assertEquals(memberInfo.getSub(), saved.getSub());
                     assertEquals(memberInfo.getProvider(), saved.getProvider());

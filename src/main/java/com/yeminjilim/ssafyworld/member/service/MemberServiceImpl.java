@@ -50,8 +50,7 @@ public class MemberServiceImpl implements MemberService {
 
                     return new Member(memberInfo,groupInfo);
                 })
-                .first()
-                .doOnNext(member -> log.info(member.toString()));
+                .first();
     }
 
     @Override
@@ -73,8 +72,7 @@ public class MemberServiceImpl implements MemberService {
 
                     return new Member(memberInfo,groupInfo);
                 })
-                .first()
-                .doOnNext(member -> log.info(member.toString()));
+                .first();
     }
 
     @Override
@@ -85,8 +83,7 @@ public class MemberServiceImpl implements MemberService {
                 .sql("SELECT m.* FROM member m WHERE m.groupInfoId = :groupInfoId")
                 .bind("groupInfoId",groupInfoId)
                 .map(row -> MemberInfo.mapping(row))
-                .all()
-                .doOnNext(member -> log.info(member.toString()));
+                .all();
     }
 
     @Override
@@ -107,8 +104,7 @@ public class MemberServiceImpl implements MemberService {
 
                     return new Member(memberInfo,groupInfo);
                 })
-                .all()
-                .doOnNext(member -> log.info(member.toString()));
+                .all();
     }
 
     @Override
@@ -131,9 +127,9 @@ public class MemberServiceImpl implements MemberService {
 
                     return new Member(memberInfo, groupInfo);
                 })
-                .first()
-                .doOnNext(member -> log.info(member.toString()));
+                .first();
     }
+
 
     @Override
     public Mono<MemberInfo> save(MemberDTO memberDTO) {
@@ -242,8 +238,7 @@ public class MemberServiceImpl implements MemberService {
                 .bind("ban", ban)
                 .bind("name", name)
                 .map(row -> row.get("is_exist",Long.class) > 0   )
-                .first()
-                .log();
+                .first();
     }
 
     @Override

@@ -17,15 +17,13 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public Flux<Question> findAll() {
-        return questionRepository.findAll()
-                .log();
+        return questionRepository.findAll();
     }
 
     @Override
     public Mono<Question> findById(Long id) {
         return questionRepository.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("question is not exist")))
-                .log();
+                .switchIfEmpty(Mono.error(new RuntimeException("question is not exist")));
     }
 
     @Override
@@ -34,8 +32,7 @@ public class QuestionServiceImpl implements QuestionService {
                 .question(questionDTO.getQuestion())
                 .build();
 
-        return questionRepository.save(question)
-                .log();
+        return questionRepository.save(question);
     }
 
     @Override
@@ -56,8 +53,7 @@ public class QuestionServiceImpl implements QuestionService {
         return questionRepository
                 .findById(id)
                 .switchIfEmpty(Mono.empty())
-                .flatMap(questionRepository::delete)
-                .log();
+                .flatMap(questionRepository::delete);
     }
 }
 
