@@ -2,12 +2,14 @@ package com.yeminjilim.ssafyworld.chat.repository;
 
 
 import com.yeminjilim.ssafyworld.chat.entity.Chat;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 
 public interface ChatRepository extends ReactiveCrudRepository<Chat, Long> {
 
-    Flux<Chat> findByGroupInfoIdOrderByCreatedAtAsc(String groupInfoId, Pageable pageable);
+    @Query("SELECT * FROM chat WHERE chat.groupInfoId = :groupInfoId and chat.createdAt < now() ORDER BY chat.createdAt ASC LIMIT 0, 200")
+    Flux<Chat> findByGroupInfoIdOrderByCreatedAtAsc(@Param("groupInfoId") String groupInfoId);
 
 }
