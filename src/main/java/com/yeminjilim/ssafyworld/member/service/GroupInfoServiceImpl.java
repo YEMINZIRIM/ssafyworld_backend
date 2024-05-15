@@ -23,14 +23,12 @@ public class GroupInfoServiceImpl implements GroupInfoService {
     public Mono<GroupInfo> findById(Long id) {
         return groupInfoRepository
                 .findById(id)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("groupInfoId is not exist")))
-                .log();
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("groupInfoId is not exist")));
     }
 
     @Override
     public Flux<GroupInfo> findAll() {
-        return groupInfoRepository.findAll()
-                .log();
+        return groupInfoRepository.findAll();
     }
 
     @Override
@@ -41,8 +39,7 @@ public class GroupInfoServiceImpl implements GroupInfoService {
                 .save(groupInfo)
                 .onErrorMap((ex) -> {
                     throw new IllegalArgumentException("cannot save groupInfo" , ex);
-                })
-                .log();
+                });
     }
 
     @Override
@@ -52,8 +49,7 @@ public class GroupInfoServiceImpl implements GroupInfoService {
                 .save(groupInfo)
                 .onErrorMap((ex) -> {
                     throw new IllegalArgumentException("cannot update groupInfo" , ex);
-                })
-                .log();
+                });
     }
 
     @Override
@@ -65,9 +61,9 @@ public class GroupInfoServiceImpl implements GroupInfoService {
                             .deleteById(id)
                             .onErrorMap((ex) -> {
                                 throw new IllegalArgumentException("cannot delete groupInfo by id" , ex);
-                            }).log();
+                            });
                     return id;
-                }).log();
+                });
     }
 
     @Override
@@ -78,8 +74,7 @@ public class GroupInfoServiceImpl implements GroupInfoService {
         return template.getDatabaseClient()
                 .sql(sql)
                 .map(row -> row.get("ordinal", Long.class))
-                .all()
-                .log();
+                .all();
     }
 
     @Override
@@ -91,8 +86,7 @@ public class GroupInfoServiceImpl implements GroupInfoService {
                 .sql(sql)
                 .bind("ordinal" , ordinal)
                 .map(row -> row.get("region", String.class))
-                .all()
-                .log();
+                .all();
     }
 
     @Override
@@ -105,8 +99,7 @@ public class GroupInfoServiceImpl implements GroupInfoService {
                 .bind("region",region)
                 .bind("ordinal" , ordinal)
                 .map(row -> row.get("ban", Long.class))
-                .all()
-                .log();
+                .all();
     }
 
     @Override

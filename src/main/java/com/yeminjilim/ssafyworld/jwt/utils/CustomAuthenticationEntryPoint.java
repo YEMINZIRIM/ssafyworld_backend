@@ -33,7 +33,6 @@ public class CustomAuthenticationEntryPoint implements ServerAuthenticationEntry
     public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException ex) {
 
         if(ex instanceof CustomJWTException customJWTException) {
-            customJWTException.printStackTrace();
             JWTErrorCode errorCode = customJWTException.getErrorCode();
 
             ServerHttpResponse serverHttpResponse = exchange.getResponse();
